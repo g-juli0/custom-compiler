@@ -15,9 +15,11 @@
  */
 
 public class Lexer {
+
+    private boolean debug = true;
     
     public Lexer(String program) {
-        
+        this.lex();
     }
 
     public static void lex() {

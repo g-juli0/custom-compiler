@@ -10,11 +10,13 @@ public class Compiler {
             // read file
             ArrayList<String> programList = readFile(args[0]);
 
+            System.out.println("INFO - Compilation started");
+
             // for each program
             for(int i = 0; i < programList.size(); i++) {
+                System.out.println("INFO - Compiling Program " + Integer.toString(i) + "...");
                 // do lex
                 Lexer lex = new Lexer(programList.get(i));
-                lex.lex();
 
                 // do parse
 

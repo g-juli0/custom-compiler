@@ -28,13 +28,13 @@ public class Compiler {
     }
 
     /**
-     * reads file provided in run command and loads each program into an 
-     * ArrayList of Strings for compilation process
-     * @param fileName
-     * @return
+     * reads file parameter provided in run command and loads each program into an 
+     * ArrayList of Strings for compiler processes
+     * @param fileName name of test program(s) file
+     * @return ArrayList<String> of program(s) in file, delineated by '$' character
      */
     public static ArrayList<String> readFile(String fileName) {
-        System.out.println(fileName);
+        System.out.println(fileName); // regurgitates fileName for now
         return new ArrayList<>();
     }
 }

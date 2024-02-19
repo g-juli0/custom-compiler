@@ -18,7 +18,7 @@ public class Compiler {
 
             // for each program
             for(int i = 0; i < programList.size(); i++) {
-                System.out.println("INFO - Compiling Program " + Integer.toString(i) + "...");
+                System.out.println("INFO - Compiling Program " + Integer.toString(i+1) + "...");
                 // do lex
                 Lexer lex = new Lexer(programList.get(i));
 
@@ -54,8 +54,6 @@ public class Compiler {
         while(inFile.hasNextLine()) {
             // read in next line
             String next = inFile.nextLine();
-            // strip newline and/or carriage return from String
-            next = next.replace(System.getProperty("line.separator"), "");
             // append line to current program
             program.append(next);
             

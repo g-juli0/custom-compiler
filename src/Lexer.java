@@ -1,4 +1,6 @@
-/*
+import java.util.ArrayList;
+
+/**
  * Lexer class for compiler
  * HIERARCHY
  *  1) keyword
@@ -13,27 +15,51 @@
  * 
  * lex errors 	    - unrecognized character
  */
-
 public class Lexer extends Component {
 
     // all valid characters in this grammar
-    private char[] grammar = {  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 
-                                'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-                                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '=', '+', '$',
-                                '{', '}', '(', ')', '"', '/', '*', ' ', '!'};
+    private static String grammar = "abcdefghijklmnopqrstuvwxyz0123456789=+${}()\"/*!";
+    
+    private int line = 1;    // line number
 
     private boolean debug = true;   // debug flag
     private String input;           // program
-    private int line;               // line number
-    private int pos;                // character position
+    private int pos = 1;            // character position
     private int errorCount = 0;     // number of detected errors
+
+    private boolean unmatchedParen = false;
+    private boolean unmatchedQuote = false;
+    private boolean unmatchedComment = false;
+
+    private ArrayList<Token> tokenStream;
     
     public Lexer(String program) {
         this.log("INFO", "Lexing started...");
 
-        // regurgitate program for now
-        System.out.println(program);
+        for(int i = 0; i < program.length(); i++) {
+            String current = Character.toString(program.charAt(i));
 
+            if(isValid(current)) {
+                this.log("DEBUG", "[ " + current + " ] detected at (" + Integer.toString(line) 
+                    + ":" + Integer.toString(pos) + ")");
+            } else if (isWhiteSpace(current)) {
+                continue;
+            } else {
+                errorCount++;
+                this.log("ERROR", "Unrecognized token [ " + current + " ] detected at (" 
+                    + Integer.toString(line) + ":" + Integer.toString(pos) + ")");
+            }
+
+            // if new line or carriage return is detected, increment line number
+            if(current.equals(System.getProperty("line.separator"))) {
+                line++;
+                pos = 0;
+            }
+            // increase character position after all processing and checking is done
+            pos++;
+        }
+
+        // print success or failure message
         if(errorCount == 0) {
             this.log("INFO", "Lex completed with " + Integer.toString(errorCount) + " errors\n");
         } else {
@@ -41,7 +67,20 @@ public class Lexer extends Component {
         }
     }
 
-    public void log(String alert, String msg) {
+    private boolean isValid(String c) {
+        return grammar.contains(c);
+    }
+
+    private boolean isWhiteSpace(String c) {
+        return c.equals("\t") || c.equals(" ") || c.equals("\r") || c.equals("\n");
+    }
+
+    /*
+    private Token tokenize() {
+        return new Token(Kind.EOP, "");
+    }*/
+
+    private void log(String alert, String msg) {
         super.log(alert, "Lexer", msg);
     }
 }

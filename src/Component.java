@@ -1,6 +1,6 @@
 /**
  * Parent class for all compiler components
- * contains debug switch and log funtion
+ * contains master debug switch and log funtion
  */
 public class Component {
     
@@ -8,7 +8,7 @@ public class Component {
 
     public void log(String alert, String step, String msg) {
         if(debug) {
-            System.out.println(alert + " - " + step + " - " + msg);
+            System.out.println(alert + "\t- " + step + " - " + msg);
         }
     }
 }

@@ -1,9 +1,13 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * entry point / main program for compiler
  */
 public class Compiler {
+
     public static void main(String[] args) {
         
         try {
@@ -25,7 +29,9 @@ public class Compiler {
                 // generate opcode
             }
         } catch (ArrayIndexOutOfBoundsException ex) {
-            System.err.println("Compiler requires test file to be specified. Try again.");
+            System.err.println("Compiler requires test file to be specified. Enter name of file and try again.");
+        } catch (FileNotFoundException ex) {
+            System.err.println("Unable to locate file. Try again.");
         }
     }
 
@@ -35,8 +41,35 @@ public class Compiler {
      * @param fileName name of test program(s) file
      * @return ArrayList<String> of program(s) in file, delineated by '$' character
      */
-    public static ArrayList<String> readFile(String fileName) {
-        System.out.println(fileName); // regurgitates fileName for now
-        return new ArrayList<>();
+    public static ArrayList<String> readFile(String fileName) throws FileNotFoundException {
+
+        // initialize empty list for programs
+        ArrayList<String> programs = new ArrayList<String>();
+
+        // initialize Scanner object to read from file specified
+        Scanner inFile = new Scanner(new File(fileName));
+
+        StringBuilder program = new StringBuilder();
+
+        while(inFile.hasNextLine()) {
+            // read in next line
+            String next = inFile.nextLine();
+            // strip newline and/or carriage return from String
+            next = next.replace(System.getProperty("line.separator"), "");
+            // append line to current program
+            program.append(next);
+            
+            // if program delimiter is detected within the next line,
+            // reset StringBuilder and save program to ArrayList
+            if(next.contains("$")) {
+                programs.add(program.toString());
+                program = new StringBuilder();
+            }
+        }
+
+        // close file after reading
+        inFile.close();
+
+        return programs;
     }
 }

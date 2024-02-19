@@ -66,9 +66,6 @@ enum Kind {
     INEQUALITY_OP,
     EQUALITY_OP,
     ADD_OP,
-    SUB_OP,
-    MULT_OP,
-    DIV_OP,
 
     // keywords
     ID_TYPE,

@@ -24,16 +24,18 @@ public class Lexer extends Component {
 
         this.log("INFO", "Lexing program " + Integer.toString(programNo) + "...");
 
-        ArrayList<String> programLines = breakIntoLineList(program);
+        ArrayList<String> programLines = convertToLineList(program);
 
         for(String line : programLines) {
-            String current = Character.toString(line.charAt(i));
+            System.out.println(line.toString());
+            //String current = Character.toString(line.charAt(i));
 
+            /*
             if(isComment(current)) {
                 // adjust position
             } else if (isWhiteSpace(current)) {
                 continue;
-            } else if ( true /*isValid(current)*/) {
+            } else if ( true /*isValid(current)) {
                 this.log("DEBUG", "[ " + current + " ] detected at (" + Integer.toString(line) 
                     + ":" + Integer.toString(pos) + ")");
             } else {
@@ -48,7 +50,7 @@ public class Lexer extends Component {
                 pos = 0;
             }
             // increase character position after all processing and checking is done
-            pos++;
+            pos++; */
         }
 
         // print success or failure message
@@ -64,8 +66,15 @@ public class Lexer extends Component {
      * @param program String containing whole program
      * @return ArrayList of Strings containing each line of the program
      */
-    private ArrayList<String> breakIntoLineList(String program) {
+    private ArrayList<String> convertToLineList(String program) {
         ArrayList<String> lines = new ArrayList<String>();
+
+        if(program.contains("\n")) {
+            while(program.contains("\n")) {
+                lines.add(program.substring(0, program.indexOf("\n")+1));
+                program = program.substring(program.indexOf("\n")+1);
+            }
+        }
 
         return lines;
     }

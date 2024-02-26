@@ -69,7 +69,7 @@ public class Compiler {
             // read in next line
             String next = inFile.nextLine();
             // append line to current program
-            program.append(next);
+            program.append(next + "\n");
             
             // if program delimiter is detected within the next line,
             // reset StringBuilder and save program to ArrayList

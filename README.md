@@ -1,5 +1,6 @@
 ## Custom Compiler
 
+Compile with `javac Compiler.java`
 To run the full compiler, use the command `java Compiler programTests.txt`
 
 ## Notes on the Grammar

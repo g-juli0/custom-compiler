@@ -4,7 +4,11 @@
  */
 public class Component {
     
-    public boolean debug = true;
+    public boolean debug;
+
+    public Component(boolean verbose) {
+        this.debug = verbose;
+    }
 
     public void log(String alert, String step, String msg) {
         if(debug) {

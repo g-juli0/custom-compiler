@@ -9,6 +9,9 @@ import java.util.Scanner;
 public class Compiler {
 
     public static void main(String[] args) {
+
+        // verbose mode flag - true by default
+        boolean verbose = true;
         
         try {
             // read file
@@ -20,13 +23,16 @@ public class Compiler {
             for(int i = 0; i < programList.size(); i++) {
                 System.out.println("INFO - Compiling Program " + Integer.toString(i+1) + "...");
                 // do lex
-                Lexer lex = new Lexer(programList.get(i));
+                Lexer lex = new Lexer(programList.get(i), i, verbose);
 
-                // do parse
+                //if(lex.getErrorCount() == 0) {
+                    // do parse
+                    // print CST
+                
+                    // do semantic analysis
 
-                // do semantic analysis
-
-                // generate opcode
+                    // generate opcode
+                //}
             }
         } catch (ArrayIndexOutOfBoundsException ex) {
             System.err.println("Compiler requires test file to be specified. Enter name of file and try again.");

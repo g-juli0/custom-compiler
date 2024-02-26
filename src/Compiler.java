@@ -25,14 +25,22 @@ public class Compiler {
                 // do lex
                 Lexer lex = new Lexer(programList.get(i), i, verbose);
 
-                //if(lex.getErrorCount() == 0) {
+                /*
+                if(lex.getErrorCount() == 0) {
                     // do parse
+                    Parser parse = new Parser(lex.getTokenStream(), i, verbose);
                     // print CST
-                
-                    // do semantic analysis
+                    parse.printCST();
+                    
+                    if(parse.getErrorCount() == 0) {
+                        // do semantic analysis
 
-                    // generate opcode
-                //}
+                        if(analysis.getErrorCount() == 0) {
+                            // generate opcode
+                        }
+                    }
+                }
+                */
             }
         } catch (ArrayIndexOutOfBoundsException ex) {
             System.err.println("Compiler requires test file to be specified. Enter name of file and try again.");

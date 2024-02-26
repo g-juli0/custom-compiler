@@ -2,18 +2,6 @@ import java.util.ArrayList;
 
 /**
  * Lexer class for compiler
- * HIERARCHY
- *  1) keyword
- *  2) id
- *  3) symbol
- *  4) digit
- *  5) char
- * 
- * lex warnings 	- missing last $, unclosed "
- *                  - unclosed comment
- *                  - no EOP symbol $
- * 
- * lex errors 	    - unrecognized character
  */
 public class Lexer extends Component {
     
@@ -26,7 +14,7 @@ public class Lexer extends Component {
         // initialize flags and local variables
         super(verbose);
 
-        int line = 1;   // line number of program text
+        //int line = 1;   // line number of program text
         int pos = 0;    // char position in line
 
         warningCount = 0;
@@ -34,10 +22,12 @@ public class Lexer extends Component {
 
         tokenStream = new ArrayList<Token>();
 
-        this.log("INFO", "Lexing started...");
+        this.log("INFO", "Lexing program " + Integer.toString(programNo) + "...");
 
-        for(int i = 0; i < program.length(); i++) {
-            String current = Character.toString(program.charAt(i));
+        ArrayList<String> programLines = breakIntoLineList(program);
+
+        for(String line : programLines) {
+            String current = Character.toString(line.charAt(i));
 
             if(isComment(current)) {
                 // adjust position
@@ -67,6 +57,17 @@ public class Lexer extends Component {
         } else {
             this.log("ERROR", "Lex failed with " + Integer.toString(errorCount) + " errors\n");
         }
+    }
+
+    /**
+     * Further breaks program string into an ArrayList of lines
+     * @param program String containing whole program
+     * @return ArrayList of Strings containing each line of the program
+     */
+    private ArrayList<String> breakIntoLineList(String program) {
+        ArrayList<String> lines = new ArrayList<String>();
+
+        return lines;
     }
 
     /*

@@ -14,7 +14,7 @@ public class Lexer extends Component {
         // initialize flags and local variables
         super(verbose);
 
-        //int line = 1;   // line number of program text
+        int line = 1;   // line number of program text
         int pos = 0;    // char position in line
 
         warningCount = 0;
@@ -26,31 +26,12 @@ public class Lexer extends Component {
 
         ArrayList<String> programLines = convertToLineList(program);
 
-        for(String line : programLines) {
-            System.out.println(line.toString());
-            //String current = Character.toString(line.charAt(i));
+        for(String progLine : programLines) {
+            System.out.println(progLine.toString());
+            char[] charList = progLine.toCharArray();
 
-            /*
-            if(isComment(current)) {
-                // adjust position
-            } else if (isWhiteSpace(current)) {
-                continue;
-            } else if ( true /*isValid(current)) {
-                this.log("DEBUG", "[ " + current + " ] detected at (" + Integer.toString(line) 
-                    + ":" + Integer.toString(pos) + ")");
-            } else {
-                errorCount++;
-                this.log("ERROR", "Unrecognized token [ " + current + " ] detected at (" 
-                    + Integer.toString(line) + ":" + Integer.toString(pos) + ")");
-            }
-
-            // if new line or carriage return is detected, increment line number
-            if(current.equals(System.getProperty("line.separator"))) {
-                line++;
-                pos = 0;
-            }
-            // increase character position after all processing and checking is done
-            pos++; */
+            tokenStream.addAll(tokenize(charList, line));
+            line++;
         }
 
         // print success or failure message
@@ -79,18 +60,31 @@ public class Lexer extends Component {
         return lines;
     }
 
-    /*
     private boolean isValid(String c) {
-        return grammar.contains(c);
+        return "abcdefghijklmnopqrstuvwxyz".contains(c);
     }
-    */
 
     private boolean isWhiteSpace(String c) {
-        return c.equals("\t") || c.equals(" ") || c.equals("\r") || c.equals("\n");
+        return c.equals("\t") || 
+                c.equals(" ") || 
+                c.equals("\r") || 
+                c.equals("\n");
     }
 
     private boolean isComment(String c) {
-        return (c.equals("/") || c.equals("*"));
+        return (c.equals("/") || 
+                c.equals("*"));
+    }
+
+    private boolean isKeyword(String c) {
+        return (c.equals("print") || 
+                c.equals("while") || 
+                c.equals("if") || 
+                c.equals("int") || 
+                c.equals("boolean") || 
+                c.equals("string") || 
+                c.equals("true") || 
+                c.equals("false"));
     }
 
     private int processComment(String c) {
@@ -99,10 +93,37 @@ public class Lexer extends Component {
         return pos;
     }
 
-    /*
-    private Token tokenize() {
-        return new Token(Kind.EOP, "");
-    }*/
+    private ArrayList<Token> tokenize(char[] charList, int line) {
+        ArrayList<Token> lineTokens = new ArrayList<Token>();
+
+        /*
+        if(isComment(current)) {
+            // adjust position
+        } else if (isWhiteSpace(current)) {
+            continue;
+        } else if ( true /*isValid(current)) {
+            this.log("DEBUG", "[ " + current + " ] detected at (" + Integer.toString(line) 
+                + ":" + Integer.toString(pos) + ")");
+        } else {
+            errorCount++;
+            this.log("ERROR", "Unrecognized token [ " + current + " ] detected at (" 
+                + Integer.toString(line) + ":" + Integer.toString(pos) + ")");
+        }
+
+        // if new line or carriage return is detected, increment line number
+        if(current.equals(System.getProperty("line.separator"))) {
+            line++;
+            pos = 0;
+        }
+        // increase character position after all processing and checking is done
+        pos++; */
+
+        return lineTokens;
+    }
+
+    public boolean success() {
+        return errorCount == 0;
+    }
 
     private void log(String alert, String msg) {
         super.log(alert, "Lexer", msg);

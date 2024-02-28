@@ -26,16 +26,16 @@ public class Compiler {
                 Lexer lex = new Lexer(programList.get(i), i, verbose);
 
                 /*
-                if(lex.getErrorCount() == 0) {
+                if(lex.success()) {
                     // do parse
                     Parser parse = new Parser(lex.getTokenStream(), i, verbose);
                     // print CST
                     parse.printCST();
                     
-                    if(parse.getErrorCount() == 0) {
+                    if(parse.success()) {
                         // do semantic analysis
 
-                        if(analysis.getErrorCount() == 0) {
+                        if(analysis.success()) {
                             // generate opcode
                         }
                     }

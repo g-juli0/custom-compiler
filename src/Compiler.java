@@ -42,6 +42,7 @@ public class Compiler {
                 }
                 */
             }
+        // error catching
         } catch (ArrayIndexOutOfBoundsException ex) {
             System.err.println("Compiler requires test file to be specified. Enter name of file and try again.");
         } catch (FileNotFoundException ex) {

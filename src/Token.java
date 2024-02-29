@@ -73,4 +73,6 @@ enum Kind {
     QUOTE,
     ID,
     EOP,
+
+    ERROR
 }

@@ -14,46 +14,12 @@ public class Token extends Component {
      * @param k Kind of Token
      * @param v value of Token
      */
-    public Token(String k, String v, int l, int p, boolean verbose) {
+    public Token(Kind k, String v, int l, int p, boolean verbose) {
         super(verbose);
-        this.kindOfToken = this.setKind(k);
+        this.kindOfToken = k;
         this.value = v;
         this.line = l;
         this.pos = p;
-    }
-
-    private Kind setKind(String k) {
-        switch(k) {
-            // block types
-            case "{": return Kind.OPEN_BLOCK;
-            case "}": return Kind.CLOSE_BLOCK;
-            case "(": return Kind.OPEN_PAREN;
-            case ")": return Kind.CLOSE_PAREN;
-
-            // operators
-            case "=": return Kind.ASSIGN_OP;
-            case "!=": return Kind.INEQUALITY_OP;
-            case "==": return Kind.EQUALITY_OP;
-            case "+": return Kind.ADD_OP;
-
-            // keywords
-            case "int": return Kind.INT;
-            case "string": return Kind.STRING;
-            case "boolean": return Kind.BOOLEAN;
-            case "while": return Kind.WHILE;
-            case "if": return Kind.IF;
-            case "print": return Kind.PRINT;
-        
-            // symbols
-            //DIGIT,
-            //CHAR,
-            case "\"": return Kind.QUOTE;
-            //ID,
-            case "$": return Kind.EOP;
-
-            // default - unrecognized
-            default: return Kind.ERROR;
-        }
     }
 
     /**
@@ -96,12 +62,14 @@ enum Kind {
     ADD_OP,
 
     // keywords
-    INT,
-    STRING,
-    BOOLEAN,
+    TYPE_BOOLEAN,
+    TYPE_STRING,
+    TYPE_INT,
     WHILE,
     IF,
     PRINT,
+    TRUE,
+    FALSE,
 
     // symbols
     DIGIT,
@@ -109,7 +77,4 @@ enum Kind {
     QUOTE,
     ID,
     EOP,
-
-    // error
-    ERROR
 }

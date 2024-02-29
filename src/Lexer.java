@@ -48,9 +48,9 @@ public class Lexer extends Component {
 
         // print success or failure message
         if(this.success()) {
-            this.log("INFO", "Lex completed with " + errorCount + " error(s) and " + warningCount + "warning(s)\n");
+            this.log("INFO", "Lex completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         } else {
-            this.log("ERROR", "Lex failed with " + errorCount + " error(s) and " + warningCount + "warning(s)\n");
+            this.log("ERROR", "Lex failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         }
     }
 
@@ -74,59 +74,66 @@ public class Lexer extends Component {
 
     /**
      * checks if given character is a letter
-     * @param c current character
+     * @param v current token value
      * @return true if letter
      */
-    private boolean isLetter(String c) {
-        return "abcdefghijklmnopqrstuvwxyz".contains(c);
+    private boolean isLetter(String v) {
+        return "abcdefghijklmnopqrstuvwxyz".contains(v);
     }
 
     /**
      * checks if given string is a digit
-     * @param c current character
+     * @param v current token value
      * @return true if digit
      */
-    private boolean isDigit(String c) {
-        return "0123456789".contains(c);
+    private boolean isDigit(String v) {
+        return "0123456789".contains(v);
+    }
+
+    /**
+     * checks if given string is a valid symbol
+     * @param v current token value
+     * @return true if valid symbol
+     */
+    private boolean isSymbol(String v) {
+        return "{}()+!==$".contains(v);
     }
 
     /**
      * checks if current character is whitespace
-     * @param c current character
+     * @param v current token value
      * @return true if whitespace
      */
-    private boolean isWhiteSpace(String c) {
-        return c.equals("\t") || 
-                c.equals(" ") || 
-                c.equals("\r") || 
-                c.equals("\n");
+    private boolean isWhiteSpace(String v) {
+        return v.equals("\t") || 
+                v.equals(" ") || 
+                v.equals("\r") || 
+                v.equals("\n");
     }
 
     /**
      * checks if current token is a keyword
-     * @param c current token
+     * @param v current token value
      * @return true if recognized keyword
      */
-    private boolean isKeyword(String c) {
-        return (c.equals("print") || 
-                c.equals("while") || 
-                c.equals("if") || 
-                c.equals("int") || 
-                c.equals("boolean") || 
-                c.equals("string") || 
-                c.equals("true") || 
-                c.equals("false"));
+    private boolean isKeyword(String v) {
+        return (v.equals("print") || 
+                v.equals("while") || 
+                v.equals("if") || 
+                v.equals("int") || 
+                v.equals("boolean") || 
+                v.equals("string") || 
+                v.equals("true") || 
+                v.equals("false"));
     }
 
     /**
-     * iterates through comment until end of comment is reached
-     * @param c current character
-     * @return position on comment end to continue lexing
+     * checks if current char and lookahead denote open comment
+     * @param v
+     * @return
      */
-    private int processComment(String c) {
-        int pos = 0;
-
-        return pos;
+    private boolean isComment(String v) {
+        return false;
     }
 
     /**
@@ -138,41 +145,73 @@ public class Lexer extends Component {
     private ArrayList<Token> tokenize(char[] charList, int line) {
         ArrayList<Token> lineTokens = new ArrayList<Token>();
 
-        for(int i = 0; i < charList.length; i++) {
+        for(int i = 0; i < charList.length-1; i++) {
             // convert current character to string for easier token checking
             String tokenBuilder = Character.toString(charList[i]);
             String lookahead = Character.toString(charList[i+1]);
 
-            // isLetter
-            //      check for keywords
-            //      otherwise ID
-
-            //isDigit
-
-            //isSymbol
-            //      +, {, }, (, ), =, ==, !=
-
-            //isQuote
-            //      add chars until quote is found again
-
-            //isComment
-            //      pass until comment close is found
-            //      adjust position
-
-            //isWhiteSpace
-            //      pass
-
-            // else
-            //      errorCount++;
-            //      this.log("ERROR", "Unrecognized token [ " + current + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(pos) + ")");
-
-            if(isLetter(tokenBuilder)) {
-
+            if(isDigit(tokenBuilder)) {
+                lineTokens.add(new Token(Kind.DIGIT, tokenBuilder, debug));
+                this.log("DEBUG", "DIGIT [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+            } else if(isLetter(tokenBuilder)) {
+                // loop to check for keywords
+                // else, ID - check lookahead (ID if not another letter)
+            } else if(isSymbol(tokenBuilder)) {
+                if(tokenBuilder.equals("+")) {
+                    lineTokens.add(new Token(Kind.ADD_OP, tokenBuilder, debug));
+                    this.log("DEBUG", "ADD_OP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                } else if(tokenBuilder.equals("{")) {
+                    lineTokens.add(new Token(Kind.OPEN_BLOCK, tokenBuilder, debug));
+                    this.log("DEBUG", "OPEN_BLOCK [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                } else if(tokenBuilder.equals("}")) {
+                    lineTokens.add(new Token(Kind.CLOSE_BLOCK, tokenBuilder, debug));
+                    this.log("DEBUG", "CLOSE_BLOCK [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                } else if(tokenBuilder.equals("(")) {
+                    lineTokens.add(new Token(Kind.OPEN_PAREN, tokenBuilder, debug));
+                    this.log("DEBUG", "OPEN_PAREN [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                } else if(tokenBuilder.equals(")")) {
+                    lineTokens.add(new Token(Kind.CLOSE_PAREN, tokenBuilder, debug));
+                    this.log("DEBUG", "CLOSE_PAREN [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                } else if(tokenBuilder.equals("$")) {
+                    lineTokens.add(new Token(Kind.EOP, tokenBuilder, debug));
+                    this.log("DEBUG", "EOP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                }
+                // if =, check lookahead
+                //      if =, ==
+                //      else =
+                // if !, check lookahead
+                //      if =, !=
+                //      else, error
+            } else if(tokenBuilder.equals("\"")) {
+                // add and log open quote
+                lineTokens.add(new Token(Kind.QUOTE, tokenBuilder, debug));
+                this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                
+                // set temp string to keep track of quote characters
+                String temp = "";
+                while(!temp.equals("\"")) {
+                    i++;
+                    temp = Character.toString(charList[i]);
+                    // add and log chars within quote
+                    lineTokens.add(new Token(Kind.CHAR, temp, debug));
+                    this.log("DEBUG", "CHAR [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                }
+                // last increment to pass end quote
+                i++;
+                // add and log close quote
+                lineTokens.add(new Token(Kind.QUOTE, tokenBuilder, debug));
+                this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+            } else if (isComment(tokenBuilder)) {
+                // pass until comment close is found
+                // adjust position
+            } else if(isWhiteSpace(tokenBuilder)) {
+                // do nothing on whitespace detection
+                continue;
+            } else {
+                errorCount++;
+                this.log("ERROR", "Unrecognized token [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
             }
-
-            if(tokenBuilder.equals("+")) {
-                lineTokens.add(new Token(Kind.ADD_OP, tokenBuilder, line, i, debug));
-            }
+            //this.log("DEBUG", t.getKind().toString()+ " [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
         }
         return lineTokens;
     }
@@ -192,6 +231,8 @@ public class Lexer extends Component {
         if(!tokenStream.get(tokenStream.size()-1).getKind().equals(Kind.EOP)) {
             this.log("WARNING", "missing EOP symbol [ $ ]");
             warningCount++;
+            this.log("INFO", "EOP symbol [ $ ] added to token stream");
+            tokenStream.add(new Token(Kind.EOP, "$", debug));
         }
     }
 

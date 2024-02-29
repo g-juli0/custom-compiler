@@ -6,20 +6,16 @@ public class Token extends Component {
 
     private Kind kindOfToken;
     private String value;
-    private int line;
-    private int pos;
 
     /**
      * Token constructor
      * @param k Kind of Token
      * @param v value of Token
      */
-    public Token(Kind k, String v, int l, int p, boolean verbose) {
+    public Token(Kind k, String v, boolean verbose) {
         super(verbose);
         this.kindOfToken = k;
         this.value = v;
-        this.line = l;
-        this.pos = p;
     }
 
     /**
@@ -44,7 +40,7 @@ public class Token extends Component {
      * @return Kind of Token converted to a String
      */
     public String toString() {
-        return "DEBUG - Lexer - " + this.kindOfToken.toString() + " [ " + this.value + " ] found at (" + this.line + ":" + this.pos + ")";
+        return this.kindOfToken.toString() + " [ " + this.value + " ]";
     }
 }
 

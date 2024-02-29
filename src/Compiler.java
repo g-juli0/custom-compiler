@@ -23,7 +23,7 @@ public class Compiler {
             for(int i = 0; i < programList.size(); i++) {
                 System.out.println("INFO - Compiling Program " + Integer.toString(i+1) + "...");
                 // do lex
-                Lexer lex = new Lexer(programList.get(i), i, verbose);
+                Lexer lex = new Lexer(programList.get(i), i+1, verbose);
 
                 /*
                 if(lex.success()) {

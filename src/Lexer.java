@@ -44,6 +44,7 @@ public class Lexer extends Component {
         }
 
         // check for eop - warning
+        checkEOP();
 
         // print success or failure message
         if(this.success()) {
@@ -72,12 +73,21 @@ public class Lexer extends Component {
     }
 
     /**
-     * checks if given character is a valid symbol
+     * checks if given character is a letter
      * @param c current character
-     * @return true if valid letter
+     * @return true if letter
      */
-    private boolean isValid(String c) {
-        return "abcdefghijklmnopqrstuvwxyz{}()+$".contains(c);
+    private boolean isLetter(String c) {
+        return "abcdefghijklmnopqrstuvwxyz".contains(c);
+    }
+
+    /**
+     * checks if given string is a digit
+     * @param c current character
+     * @return true if digit
+     */
+    private boolean isDigit(String c) {
+        return "0123456789".contains(c);
     }
 
     /**
@@ -108,11 +118,6 @@ public class Lexer extends Component {
                 c.equals("false"));
     }
 
-    private boolean isEqualityOperator(String c) {
-        return (c.equals("=") ||
-                c.equals("!"));
-    }
-
     /**
      * iterates through comment until end of comment is reached
      * @param c current character
@@ -136,42 +141,39 @@ public class Lexer extends Component {
         for(int i = 0; i < charList.length; i++) {
             // convert current character to string for easier token checking
             String tokenBuilder = Character.toString(charList[i]);
+            String lookahead = Character.toString(charList[i+1]);
 
-            if(isValid(tokenBuilder)) {
-                if(isEqualityOperator(tokenBuilder) && charList[i+1] == '=') {
-                    // extra increment to skip second symbol
-                    i++;
-                    tokenBuilder += charList[i];
-                }
+            // isLetter
+            //      check for keywords
+            //      otherwise ID
 
-            } else if (tokenBuilder.equals("/")) {
+            //isDigit
+
+            //isSymbol
+            //      +, {, }, (, ), =, ==, !=
+
+            //isQuote
+            //      add chars until quote is found again
+
+            //isComment
+            //      pass until comment close is found
+            //      adjust position
+
+            //isWhiteSpace
+            //      pass
+
+            // else
+            //      errorCount++;
+            //      this.log("ERROR", "Unrecognized token [ " + current + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(pos) + ")");
+
+            if(isLetter(tokenBuilder)) {
 
             }
 
+            if(tokenBuilder.equals("+")) {
+                lineTokens.add(new Token(Kind.ADD_OP, tokenBuilder, line, i, debug));
+            }
         }
-
-        /*
-        if(isComment(current)) {
-            // adjust position
-        } else if (isWhiteSpace(current)) {
-            continue;
-        } else if ( true /*isValid(current)) {
-            this.log("DEBUG", "[ " + current + " ] detected at (" + Integer.toString(line) 
-                + ":" + Integer.toString(pos) + ")");
-        } else {
-            errorCount++;
-            this.log("ERROR", "Unrecognized token [ " + current + " ] detected at (" 
-                + Integer.toString(line) + ":" + Integer.toString(pos) + ")");
-        }
-
-        // if new line or carriage return is detected, increment line number
-        if(current.equals(System.getProperty("line.separator"))) {
-            line++;
-            pos = 0;
-        }
-        // increase character position after all processing and checking is done
-        pos++; */
-
         return lineTokens;
     }
 
@@ -181,6 +183,16 @@ public class Lexer extends Component {
      */
     public ArrayList<Token> getTokenStream() {
         return tokenStream;
+    }
+
+    /**
+     * outputs warning message if end of program symbol is not the last symbol in the tokenStream
+     */
+    private void checkEOP() {
+        if(!tokenStream.get(tokenStream.size()-1).getKind().equals(Kind.EOP)) {
+            this.log("WARNING", "missing EOP symbol [ $ ]");
+            warningCount++;
+        }
     }
 
     /**

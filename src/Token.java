@@ -2,29 +2,58 @@
  * Token examples:
  *      <id, x> <assign> <id, y> <add> <id, y>
  */
-public class Token {
+public class Token extends Component {
 
     private Kind kindOfToken;
     private String value;
+    private int line;
+    private int pos;
 
     /**
      * Token constructor
      * @param k Kind of Token
      * @param v value of Token
      */
-    public Token(Kind k, String v) {
-        this.kindOfToken = k;
+    public Token(String k, String v, int l, int p, boolean verbose) {
+        super(verbose);
+        this.kindOfToken = this.setKind(k);
         this.value = v;
+        this.line = l;
+        this.pos = p;
     }
 
-    /**
-     * Token constructor
-     * @param k Kind of Token
-     */
-    public Token(Kind k) {
-        this.kindOfToken = k;
-        this.value = ""; // no value associated
-                         // with this kind of Token
+    private Kind setKind(String k) {
+        switch(k) {
+            // block types
+            case "{": return Kind.OPEN_BLOCK;
+            case "}": return Kind.CLOSE_BLOCK;
+            case "(": return Kind.OPEN_PAREN;
+            case ")": return Kind.CLOSE_PAREN;
+
+            // operators
+            case "=": return Kind.ASSIGN_OP;
+            case "!=": return Kind.INEQUALITY_OP;
+            case "==": return Kind.EQUALITY_OP;
+            case "+": return Kind.ADD_OP;
+
+            // keywords
+            case "int": return Kind.INT;
+            case "string": return Kind.STRING;
+            case "boolean": return Kind.BOOLEAN;
+            case "while": return Kind.WHILE;
+            case "if": return Kind.IF;
+            case "print": return Kind.PRINT;
+        
+            // symbols
+            //DIGIT,
+            //CHAR,
+            case "\"": return Kind.QUOTE;
+            //ID,
+            case "$": return Kind.EOP;
+
+            // default - unrecognized
+            default: return Kind.ERROR;
+        }
     }
 
     /**
@@ -49,7 +78,7 @@ public class Token {
      * @return Kind of Token converted to a String
      */
     public String toString() {
-        return this.kindOfToken.toString();
+        return "DEBUG - Lexer - " + this.kindOfToken.toString() + " [ " + this.value + " ] found at (" + this.line + ":" + this.pos + ")";
     }
 }
 
@@ -67,7 +96,9 @@ enum Kind {
     ADD_OP,
 
     // keywords
-    ID_TYPE,
+    INT,
+    STRING,
+    BOOLEAN,
     WHILE,
     IF,
     PRINT,
@@ -78,4 +109,7 @@ enum Kind {
     QUOTE,
     ID,
     EOP,
+
+    // error
+    ERROR
 }

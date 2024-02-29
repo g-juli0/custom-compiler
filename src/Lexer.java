@@ -43,11 +43,13 @@ public class Lexer extends Component {
             line++;
         }
 
+        // check for eop - warning
+
         // print success or failure message
         if(this.success()) {
-            this.log("INFO", "Lex completed with " + Integer.toString(errorCount) + " errors and " + Integer.toString(warningCount) + "warnings\n");
+            this.log("INFO", "Lex completed with " + errorCount + " error(s) and " + warningCount + "warning(s)\n");
         } else {
-            this.log("ERROR", "Lex failed with " + Integer.toString(errorCount) + " errors and " + Integer.toString(warningCount) + "warnings\n");
+            this.log("ERROR", "Lex failed with " + errorCount + " error(s) and " + warningCount + "warning(s)\n");
         }
     }
 
@@ -70,12 +72,12 @@ public class Lexer extends Component {
     }
 
     /**
-     * checks if given character is a valid letter
+     * checks if given character is a valid symbol
      * @param c current character
      * @return true if valid letter
      */
     private boolean isValid(String c) {
-        return "abcdefghijklmnopqrstuvwxyz".contains(c);
+        return "abcdefghijklmnopqrstuvwxyz{}()+$".contains(c);
     }
 
     /**
@@ -88,16 +90,6 @@ public class Lexer extends Component {
                 c.equals(" ") || 
                 c.equals("\r") || 
                 c.equals("\n");
-    }
-
-    /**
-     * checks if current character is part of a comment
-     * @param c current character
-     * @return true if comment character
-     */
-    private boolean isComment(String c) {
-        return (c.equals("/") || 
-                c.equals("*"));
     }
 
     /**
@@ -114,6 +106,11 @@ public class Lexer extends Component {
                 c.equals("string") || 
                 c.equals("true") || 
                 c.equals("false"));
+    }
+
+    private boolean isEqualityOperator(String c) {
+        return (c.equals("=") ||
+                c.equals("!"));
     }
 
     /**
@@ -135,6 +132,23 @@ public class Lexer extends Component {
      */
     private ArrayList<Token> tokenize(char[] charList, int line) {
         ArrayList<Token> lineTokens = new ArrayList<Token>();
+
+        for(int i = 0; i < charList.length; i++) {
+            // convert current character to string for easier token checking
+            String tokenBuilder = Character.toString(charList[i]);
+
+            if(isValid(tokenBuilder)) {
+                if(isEqualityOperator(tokenBuilder) && charList[i+1] == '=') {
+                    // extra increment to skip second symbol
+                    i++;
+                    tokenBuilder += charList[i];
+                }
+
+            } else if (tokenBuilder.equals("/")) {
+
+            }
+
+        }
 
         /*
         if(isComment(current)) {
@@ -159,6 +173,14 @@ public class Lexer extends Component {
         pos++; */
 
         return lineTokens;
+    }
+
+    /**
+     * returns tokenStream for use in parse phase
+     * @return ArrayList of Tokenized program
+     */
+    public ArrayList<Token> getTokenStream() {
+        return tokenStream;
     }
 
     /**

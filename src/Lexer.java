@@ -142,15 +142,6 @@ public class Lexer extends Component {
     }
 
     /**
-     * checks if current char and lookahead denote open comment
-     * @param v
-     * @return
-     */
-    private boolean isComment(String v) {
-        return false;
-    }
-
-    /**
      * turns entire list of characters into ArrayList of Tokens to add to the token stream
      * @param charList list of characters in the current line
      * @param line line number for debug output
@@ -263,9 +254,23 @@ public class Lexer extends Component {
                 this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
             
             // COMMENT DETECTION
-            } else if (isComment(tokenBuilder)) {
-                // pass until comment close is found
-                // adjust position
+            } else if (tokenBuilder.equals("/")) {
+                lookahead = Character.toString(charList[i+1]);
+
+                if(lookahead.equals("*")) {
+                    i = i+2; // adjust position to first symbol after comment open
+                    String current = Character.toString(charList[i+1]);
+                    
+                    while(!current.equals("*")) {
+                        current = Character.toString(charList[i+1]);
+                        i++; // increment position
+
+                        if(current.equals("*") && Character.toString(charList[i+1]).equals("/")) {
+                            i = i+2; // adjust position to first symbol after comment close
+                            break;
+                        }
+                    }
+                }
 
             // WHITESPACE DETECTION
             } else if(isWhiteSpace(tokenBuilder)) {

@@ -43,7 +43,7 @@ public class Lexer extends Component {
             line++;
         }
 
-        // check for eop - warning
+        // check for last EOP symbol
         checkEOP();
 
         // print success or failure message
@@ -62,13 +62,13 @@ public class Lexer extends Component {
     private ArrayList<String> convertToLineList(String program) {
         ArrayList<String> lines = new ArrayList<String>();
 
+        // while a newline is detected, break each program line into substrings and add to ArrayList
         if(program.contains("\n")) {
             while(program.contains("\n")) {
                 lines.add(program.substring(0, program.indexOf("\n")+1));
                 program = program.substring(program.indexOf("\n")+1);
             }
         }
-
         return lines;
     }
 
@@ -127,6 +127,11 @@ public class Lexer extends Component {
                 v.equals("false"));
     }
 
+    /**
+     * returns Kind of keyword given string of possible keyword
+     * @param v current token value
+     * @return Kind of keyword
+     */
     private Kind getKeyword(String v) {
         switch (v) {
             case "print": return Kind.PRINT;
@@ -176,9 +181,10 @@ public class Lexer extends Component {
                     i++;
                     while(isLetter(temp)) {
                         tokenBuilder += temp;
-                        i++;
+                        i++; // increment position
                         temp = Character.toString(charList[i]);
 
+                        // once a keyword is detected, add the token and break out of the loop
                         if(isKeyword(tokenBuilder)) {
                             lineTokens.add(new Token(getKeyword(temp), temp, debug));
                             break;

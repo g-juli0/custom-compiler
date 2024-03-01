@@ -21,26 +21,32 @@ public class Compiler {
 
             // for each program
             for(int i = 0; i < programList.size(); i++) {
-                System.out.println("INFO - Compiling Program " + Integer.toString(i+1) + "...");
-                // do lex
-                Lexer lex = new Lexer(programList.get(i), i+1, verbose);
 
-                /*
+                int programNo = i+1;
+                System.out.println("INFO - Compiling Program " + programNo + "...");
+
+                // do lex
+                Lexer lex = new Lexer(programList.get(i), programNo, verbose);
+                
                 if(lex.success()) {
                     // do parse
-                    Parser parse = new Parser(lex.getTokenStream(), i, verbose);
+                    Parser parse = new Parser(lex.getTokenStream(), programNo, verbose);
+                    
                     // print CST
-                    parse.printCST();
+                    //parse.printCST();
                     
                     if(parse.success()) {
                         // do semantic analysis
 
-                        if(analysis.success()) {
+                        //if(analysis.success()) {
                             // generate opcode
-                        }
+                        //}
+                    } else {
+                        System.err.println("INFO - Parse failed on " + programNo + ". Skipping remaining compiler phases.");
                     }
+                } else {
+                    System.err.println("INFO - Lex failed on program " + programNo + ". Skipping remaining compiler phases.");
                 }
-                */
             }
         // error catching
         } catch (ArrayIndexOutOfBoundsException ex) {

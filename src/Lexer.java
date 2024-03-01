@@ -194,7 +194,7 @@ public class Lexer extends Component {
                         }
                     }
                     this.log("DEBUG", getKeyword(tokenBuilder).toString() + " [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-                    i--;
+                    i--; // back up one position to read the close quote properly
                 }
 
             // SYMBOL DETECTION
@@ -217,13 +217,29 @@ public class Lexer extends Component {
                 } else if(tokenBuilder.equals("$")) {   // $
                     lineTokens.add(new Token(Kind.EOP, tokenBuilder, debug));
                     this.log("DEBUG", "EOP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                } else if (tokenBuilder.equals("=")) {
+                    lookahead = Character.toString(charList[i+1]);
+                    if(lookahead.equals("=")) {         // ==
+                        i++; // increment position
+                        tokenBuilder += lookahead;
+                        lineTokens.add(new Token(Kind.EQUALITY_OP, tokenBuilder, debug));
+                        this.log("DEBUG", "EQUALITY_OP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                    } else {                                    // =
+                        lineTokens.add(new Token(Kind.ASSIGN_OP, tokenBuilder, debug));
+                        this.log("DEBUG", "ASSIGN_OP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                    }
+                } else if (tokenBuilder.equals("!")) {  // !
+                    lookahead = Character.toString(charList[i+1]);
+                    if(lookahead.equals("=")) {         // !=
+                        i++; // increment position
+                        tokenBuilder += lookahead;
+                        lineTokens.add(new Token(Kind.INEQUALITY_OP, tokenBuilder, debug));
+                        this.log("DEBUG", "INEQUALITY_OP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                    } else {
+                        errorCount++;
+                        this.log("ERROR", "Unrecognized token [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                    }
                 }
-                // if =, check lookahead
-                //      if =, ==
-                //      else =
-                // if !, check lookahead
-                //      if =, !=
-                //      else, error
 
             // QUOTE DETECTION
             } else if(tokenBuilder.equals("\"")) {
@@ -239,7 +255,7 @@ public class Lexer extends Component {
                     // add and log chars within quote
                     lineTokens.add(new Token(Kind.CHAR, temp, debug));
                     this.log("DEBUG", "CHAR [ " + temp + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-                    i++;
+                    i++; // increment position
                     temp = Character.toString(charList[i]);
                 }
                 // add and log close quote

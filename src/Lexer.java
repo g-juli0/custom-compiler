@@ -2,6 +2,11 @@ import java.util.ArrayList;
 
 /**
  * Lexer class for compiler
+ * 
+ * warnings         - unclosed quote warning
+ * (to implement)   - unclosed comment warning
+ * 
+ * digits should be invlaid within quotes (charList)
  */
 public class Lexer extends Component {
     
@@ -160,13 +165,8 @@ public class Lexer extends Component {
             String tokenBuilder = Character.toString(charList[i]);
             String lookahead;
             
-            // DIGIT DETECTION
-            if(isDigit(tokenBuilder)) {
-                lineTokens.add(new Token(Kind.DIGIT, tokenBuilder, debug));
-                this.log("DEBUG", "DIGIT [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-            
             // LETTER DETECTION
-            } else if(isLetter(tokenBuilder)) {
+            if(isLetter(tokenBuilder)) {
                 lookahead = Character.toString(charList[i+1]);
 
                 // ID DETECTION
@@ -237,6 +237,11 @@ public class Lexer extends Component {
                         this.log("ERROR", "Unrecognized token [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                     }
                 }
+
+            // DIGIT DETECTION
+            } else if(isDigit(tokenBuilder)) {
+                lineTokens.add(new Token(Kind.DIGIT, tokenBuilder, debug));
+                this.log("DEBUG", "DIGIT [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
 
             // QUOTE DETECTION
             } else if(tokenBuilder.equals("\"")) {

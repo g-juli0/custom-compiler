@@ -36,4 +36,90 @@ $
 
 /*LongTestCase-EverythingExceptBooleanDeclaration*/{/*IntDeclaration*/intaintba=0b=0/*WhileLoop*/while(a!=3){print(a)while(b!=3){print(b)b=1+bif(b==2){/*PrintStatement*/print("there is no spoon"/*Thiswilldonothing*/)}}b=0a=1+a}}$
 
+{1 = 2}$
+
+{print("")}$
+
+{print(a)}$
+
+{print(2)}$
+
+{print("a")}$
+
+{print(false)}$
+
+{print(inta)}$
+
+print(a){print(a)}$
+
+{a=1}$
+
+{a = 1}$
+
+{a = 1 + 2 + 3 + 4	+   5}$
+
+{
+int a
+a = a
+string b
+a = b
+}$
+
+{int a a=a string b a=b}$
+
+{{{{{{a=1+2+3+4+5{print(4+a)}}}}}}}$
+
+{
+/* comment test */
+a="string"
+}$
+
+{
+boolean d
+d = ("string" != "string")
+}$
+
+{intfintif=2}$
+
+{/*almost every token*/ ()
+print=whileif"intstring"
+intstringbooleanfalse
+true
+==!=+ a 0123456789}$
+
+{"two
+lines"}$
+
+{print("No Caps")}$
+
+{print("n0 d1g1t5)}$
+
+{int A}$
+
+{
+~!@#%^&*_{}|:<>?[];',./
+bool ean d
+}$
+
+{a!2}$
+
+{"$"}$
+
+{int a /* unterminated comment}$
+
+{a = "unterminated string}$
+
+{
+string s
+s = "this string is /* in */ visible"
+}$
+
+{intii=0stringss="hello"booleanbb=(true==(1!
+=2))if(b==true){while(true!=(b!=(false==(2!=3))))
+{i=1+iprint(s)}}print("ugly code")}$
+
+{print(007)}$
+
+{a=12}$
+
 /* no EOP $ */ {int i = 1}

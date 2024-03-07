@@ -6,13 +6,29 @@ public class Parser extends Component {
     private int errorCount;     // number of detected errors
 
     private ArrayList<Token> tokenStream;
+    //private Tree CST;
 
     public Parser(ArrayList<Token> stream, int programNo, boolean verbose) {
         super(verbose);
         this.tokenStream = stream;
 
+        warningCount = 0;
+        errorCount = 0;
+
         this.log("INFO", "Parsing program " + Integer.toString(programNo) + "...");
 
+        // parse stuff
+
+        if(this.success()) {
+            this.printCST();
+            this.log("INFO", "Parse completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
+        } else {
+            this.log("ERROR", "Parse failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
+        }
+    }
+
+    private void printCST() {
+        // print concrete syntax tree
     }
 
     /**

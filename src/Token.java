@@ -74,5 +74,6 @@ enum Kind {
     ID,
     EOP,
 
+    // error
     ERROR
 }

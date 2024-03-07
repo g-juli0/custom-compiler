@@ -23,7 +23,7 @@ public class Compiler {
             for(int i = 0; i < programList.size(); i++) {
 
                 int programNo = i+1;
-                System.out.println("INFO - Compiling Program " + programNo + "...");
+                System.out.println("INFO - Compiling program " + programNo + "...");
 
                 // do lex
                 Lexer lex = new Lexer(programList.get(i), programNo, verbose);
@@ -32,15 +32,22 @@ public class Compiler {
                     // do parse
                     Parser parse = new Parser(lex.getTokenStream(), programNo, verbose);
                     
-                    // print CST
-                    //parse.printCST();
-                    
                     if(parse.success()) {
                         // do semantic analysis
+                        /*
+                        SemanticAnalyzer analyzer = new SemanticAnalyzer(placeholder, programNo, verbose);
 
-                        //if(analysis.success()) {
+                        if(analyzer.success()) {
                             // generate opcode
-                        //}
+                            CodeGenerator generator = new CodeGenerator(placeholder, programNo, verbose);
+
+                            if(generator.success()) {
+                                System.out.println("INFO - Program " + programNo + " successfully compiled");
+                            }
+                        } else {
+                            System.err.println("INFO - Semantic analyzer failed on " + programNo + ". Skipping remaining compiler phases.");
+                        }
+                        */
                     } else {
                         System.err.println("INFO - Parse failed on " + programNo + ". Skipping remaining compiler phases.");
                     }

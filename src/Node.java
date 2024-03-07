@@ -26,4 +26,44 @@ public class Node {
         this.parent = p;
         this.value = v;
     }
+    
+    /**
+     * getter for Node value
+     * @return String value
+     */
+    public String getValue() {
+        return this.value;
+    }
+
+    /**
+     * getter for Node parent
+     * @return Node parent
+     */
+    public Node getParent() {
+        return this.parent;
+    }
+
+    /**
+     * setter for Node parent
+     * @param p new parent Node
+     */
+    public void setParent(Node p) {
+        this.parent = p;
+    }
+
+    /**
+     * adds new child Node to ArrayList of child Nodes
+     * @param child
+     */
+    public void addChild(Node child) {
+        children.add(child);
+    }
+
+    /**
+     * getter for children ArrayList
+     * @return ArrayList of child Nodes
+     */
+    public ArrayList<Node> getChildren() {
+        return this.children;
+    }
 }

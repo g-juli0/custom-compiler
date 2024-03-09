@@ -5,8 +5,9 @@ import java.util.ArrayList;
  * 
  * warnings         - unclosed quote warning
  * (to implement)   - unclosed comment warning
- * 
  * digits should be invlaid within quotes (charList)
+ * 
+ * errors           - multiline quote handling
  */
 public class Lexer extends Component {
     
@@ -25,13 +26,12 @@ public class Lexer extends Component {
         // initialize flags and local variables
         super(verbose);
 
-        int line = 1;   // line number of program text
-        int pos = 0;    // char position in line
-
         warningCount = 0;
         errorCount = 0;
 
         tokenStream = new ArrayList<Token>();
+
+        int line = 1;   // line number of program text
 
         this.log("INFO", "Lexing program " + Integer.toString(programNo) + "...");
 
@@ -75,80 +75,6 @@ public class Lexer extends Component {
             }
         }
         return lines;
-    }
-
-    /**
-     * checks if given character is a letter
-     * @param v current token value
-     * @return true if letter
-     */
-    private boolean isLetter(String v) {
-        return "abcdefghijklmnopqrstuvwxyz".contains(v);
-    }
-
-    /**
-     * checks if given string is a digit
-     * @param v current token value
-     * @return true if digit
-     */
-    private boolean isDigit(String v) {
-        return "0123456789".contains(v);
-    }
-
-    /**
-     * checks if given string is a valid symbol
-     * @param v current token value
-     * @return true if valid symbol
-     */
-    private boolean isSymbol(String v) {
-        return "{}()+!==$".contains(v);
-    }
-
-    /**
-     * checks if current character is whitespace
-     * @param v current token value
-     * @return true if whitespace
-     */
-    private boolean isWhiteSpace(String v) {
-        return v.equals("\t") || 
-                v.equals(" ") || 
-                v.equals("\r") || 
-                v.equals("\n");
-    }
-
-    /**
-     * checks if current token is a keyword
-     * @param v current token value
-     * @return true if recognized keyword
-     */
-    private boolean isKeyword(String v) {
-        return (v.equals("print") || 
-                v.equals("while") || 
-                v.equals("if") || 
-                v.equals("int") || 
-                v.equals("boolean") || 
-                v.equals("string") || 
-                v.equals("true") || 
-                v.equals("false"));
-    }
-
-    /**
-     * returns Kind of keyword given string of possible keyword
-     * @param v current token value
-     * @return Kind of keyword
-     */
-    private Kind getKeyword(String v) {
-        switch (v) {
-            case "print": return Kind.PRINT;
-            case "while": return Kind.WHILE;
-            case "if": return Kind.IF;
-            case "int": return Kind.TYPE_INT;
-            case "boolean": return Kind.TYPE_BOOLEAN;
-            case "string": return Kind.TYPE_STRING;
-            case "true": return Kind.TRUE;
-            case "false": return Kind.FALSE;
-            default: return Kind.ERROR;
-        }
     }
 
     /**

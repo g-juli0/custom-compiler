@@ -6,7 +6,7 @@ public class Parser extends Component {
     private int errorCount;     // number of detected errors
 
     private ArrayList<Token> tokenStream;
-    //private Tree CST;
+    private SyntaxTree CST;
 
     public Parser(ArrayList<Token> stream, int programNo, boolean verbose) {
         super(verbose);
@@ -17,7 +17,7 @@ public class Parser extends Component {
 
         this.log("INFO", "Parsing program " + Integer.toString(programNo) + "...");
 
-        // parse stuff
+        parse();
 
         if(this.success()) {
             this.printCST();
@@ -25,6 +25,289 @@ public class Parser extends Component {
         } else {
             this.log("ERROR", "Parse failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         }
+    }
+
+    private void match(String value) {
+
+    }
+
+    /**
+     * Program ::== Block $
+     */
+    private void parse() {
+        parseBlock();
+        match("$");
+    }
+
+    /**
+     * Block ::== { StatementList }
+     */
+    private void parseBlock() {
+        match("{}");
+        parseStatementList();
+        match("}");
+    }
+
+    /**
+     * StatementList ::== Statement StatementList
+     *               ::== epsilon (empty) production
+     */
+    private void parseStatementList() {
+        /*
+        if(print || assign || vardecl || while || if || {)
+        parseStatement();
+        parseStatementList();
+        else {
+            // do nothing, epsilon (empty) production
+        }
+        */
+    }
+
+    /**
+     * Statement ::== PrintStatement
+     *           ::== AssignStatement
+     *           ::== VarDecl
+     *           ::== WhileStatement
+     *           ::== IfStatement
+     *           ::== Block
+     */
+    private void parseStatement() {
+        /* 
+        if(print) {
+            parsePrintStatement();
+        } else if (assign) {
+            parseAssignmentStatement();
+        } else if (vardecl) {
+            parseVarDecl();
+        } else if (while) {
+            parseWhileStatement();
+        } else if (if) {
+            parseIfStatement();
+        } else if ({) { // new block
+            parseBlock();
+        } else {
+            // error: expected [^^^], found ____
+        }
+         */
+    }
+
+    /**
+     * PrintStatement ::== print ( Expr )
+     */
+    private void parsePrintStatement() {
+        match("print");
+        match("(");
+        parseExpr();
+        match(")");
+    }
+
+    /**
+     * AssignmentStatement ::== Id = Expr
+     */
+    private void parseAssignmentStatement() {
+        parseId();
+        match("=");
+        parseExpr();
+    }
+
+    /**
+     * VarDecl ::== type Id
+     */
+    private void parseVarDecl() {
+        parseType();
+        parseId();
+    }
+
+    /**
+     * WhileStatement ::== while BooleanExpr Block
+     */
+    private void parseWhileStatement() {
+        match("while");
+        parseBooleanExpr();
+        parseBlock();
+    }
+
+    /**
+     * IfStatement ::== if BooleanExpr Block
+     */
+    private void parseIfStatement() {
+        match("if");
+        parseBooleanExpr();
+        parseBlock();
+    }
+
+    /**
+     * Expr ::== IntExpr
+     *      ::== StringExpr
+     *      ::== BooleanExpr
+     *      ::== Id
+     */
+    private void parseExpr() {
+        /*
+        if(int) {
+            parseIntExpr();
+        } else if (string) {
+            parseStringExpr();
+        } else if (boolean) {
+            parseBooleanExpr();
+        } else if (id) {
+            parseId();
+        } else {
+            // error: expected [^^^], found ____
+        }
+         */
+    }
+
+    /**
+     * IntExpr ::== digit intop Expr
+     *         ::== digit
+     */
+    private void parseIntExpr() {
+        /*
+        parseDigit();
+        if(next == intop) {
+            parseIntOp();
+            parseExpr();
+        }
+        */
+    }
+
+    /**
+     * StringExpr ::== " CharList "
+     */
+    private void parseStringExpr() {
+        match("\"");
+        parseCharList();
+        match("\"");
+    }
+
+    /**
+     * BooleanExpr ::== ( Expr boolop Expr )
+     *             ::== boolval
+     */
+    private void parseBooleanExpr() {
+        /*
+        if(true or false) {
+            parseBoolVal();
+        } else {
+            match("(");
+            parseExpr();
+            parseBoolOp();
+            parseExpr();
+            match(")");
+        }
+        */
+    }
+
+    /**
+     * Id ::== char
+     */
+    private void parseId() {
+        parseChar();
+    }
+
+    /**
+     * CharList ::== char CharList
+     *          ::== space CharList
+     */
+    private void parseCharList() {
+        /*
+        if(char) {
+            parseChar();
+        } else if (space) {
+            parseSpace();
+        } else {
+            // do nothing, epsilon (empty) production
+        }
+         */
+    }
+
+    /**
+     * type ::== int | string | boolean
+     */
+    private void parseType() {
+        /*
+        if(int) {
+            match("int");
+        } else if (string) {
+            match("string")
+        } else if (boolean) {
+            match("boolean");
+        }
+         */
+    }
+    
+    /**
+     * char ::== a | b | c | ... | z
+     */
+    private void parseChar() {
+        /*
+        switch(c) {
+            case "a": match("a"); break;
+            case "b": match("b"); break;
+            // ...
+            // default:  log error: expected [a-z], found ____
+        }
+         */
+    }
+
+    /**
+     * space ::== ' '
+     *            (space character)
+     */
+    private void parseSpace() {
+        match(" ");
+    }
+
+    /**
+     * digit ::== 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+     */
+    private void parseDigit() {
+        /*
+        switch(d) {
+            case "0": match("0"); break;
+            case "1": match("1"); break;
+            // ...
+            // default:  log error: expected [0-9], found ____
+        }
+         */
+    }
+
+    /**
+     * boolop ::== == | !=
+     */
+    private void parseBoolOp() {
+        /*
+        if(==) {
+            match("==");
+        } else if (!=) {
+            match("!=")
+        } else {
+            error: expected [boolop: == or !=], found ____
+        }
+         */
+    }
+
+    /**
+     * boolval ::== false | true
+     */
+    private void parseBoolVal() {
+        /*
+        if(true) {
+            match("true");
+        } else if (false) {
+            match("false");
+        } else {
+            // error: expected [boolval: true or false], found ____
+        }
+         */
+    }
+
+    /**
+     * intop ::== +
+     */
+    private void parseIntOp() {
+        match("+");
     }
 
     private void printCST() {

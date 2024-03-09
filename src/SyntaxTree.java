@@ -5,4 +5,9 @@ import java.util.ArrayList;
  */
 public class SyntaxTree {
     
+    public Node root;
+
+    public SyntaxTree(Node r) {
+        this.root = r;
+    }
 }

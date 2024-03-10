@@ -66,4 +66,8 @@ public class Node {
     public ArrayList<Node> getChildren() {
         return this.children;
     }
+
+    public boolean hasChildren() {
+        return this.children.size() > 0;
+    }
 }

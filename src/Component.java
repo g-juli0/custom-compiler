@@ -1,6 +1,6 @@
 /**
  * Parent class for all compiler components
- * contains master debug switch and log funtion
+ * contains master debug switch, log, and type check methods
  */
 public class Component {
     

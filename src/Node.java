@@ -10,7 +10,7 @@ public class Node {
     ArrayList<Node> children;
 
     /**
-     * constructor for Node given only a value (no parent)
+     * constructor for Node given only a value (null parent)
      * @param v value of Node
      */
     public Node(String v) {
@@ -67,6 +67,10 @@ public class Node {
         return this.children;
     }
 
+    /**
+     * checks if Node has children
+     * @return true if children ArrayList not empty
+     */
     public boolean hasChildren() {
         return this.children.size() > 0;
     }

@@ -27,14 +27,52 @@ public class Parser extends Component {
         }
     }
 
-    private void match(String value) {
+    /**
+     * removes and returns next Token off of Token stream
+     * @return next Token
+     */
+    private Token pop() {
+        return tokenStream.remove(0);
+    }
 
+    /**
+     * peeks at next Token in the Token stream
+     * @return next Token
+     */
+    private Token peek() {
+        return tokenStream.get(0);
+    }
+
+    /**
+     * matches expected value to next expected Token in stream
+     * @param expectedValue next expected value
+     */
+    private void match(String expectedValue) {
+        // if end of stream reached, error
+        if(tokenStream.size() < 1) {
+            this.log("ERROR", "Expected [ " + expectedValue + " ], found end of stream.");
+            errorCount++;
+        } else {
+            Token currentToken = this.peek();
+            // if current Token value equals expected value
+            if(currentToken.getValue().equals(expectedValue)) {
+                // remove Token and continue
+                this.pop();
+            } else {
+                this.log("ERROR", "Expected [ " + expectedValue + " ], found " + currentToken.getKind().toString());
+                errorCount++;
+            }
+        }
     }
 
     /**
      * Program ::== Block $
      */
     private void parse() {
+        // create new tree and log debug message
+        this.CST = new SyntaxTree(new Node("<Program>"));
+        this.log("DEBUG", "parse()");
+
         parseBlock();
         match("$");
     }
@@ -43,7 +81,7 @@ public class Parser extends Component {
      * Block ::== { StatementList }
      */
     private void parseBlock() {
-        match("{}");
+        match("{");
         parseStatementList();
         match("}");
     }

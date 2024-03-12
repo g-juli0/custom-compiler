@@ -30,9 +30,9 @@ public class Compiler {
                 
                 if(lex.success()) {
                     // do parse
-                    //Parser parse = new Parser(lex.getTokenStream(), programNo, verbose);
+                    Parser parse = new Parser(lex.getTokenStream(), programNo, verbose);
                     
-                    //if(parse.success()) {
+                    if(parse.success()) {
                         // do semantic analysis
                         /*
                         SemanticAnalyzer analyzer = new SemanticAnalyzer(placeholder, programNo, verbose);
@@ -48,9 +48,9 @@ public class Compiler {
                             System.err.println("INFO - Semantic analyzer failed on " + programNo + ". Skipping remaining compiler phases.");
                         }
                         */
-                    //} else {
+                    } else {
                         //System.err.println("INFO - Parse failed on " + programNo + ". Skipping remaining compiler phases.");
-                    //}
+                    }
                 } else {
                     System.err.println("INFO - Lex failed on program " + programNo + ". Skipping remaining compiler phases.");
                 }

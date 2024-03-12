@@ -5,15 +5,16 @@ import java.util.ArrayList;
  */
 public class Node {
 
-    String value;
-    Node parent;
-    ArrayList<Node> children;
+    private String value;
+    private Node parent;
+    private ArrayList<Node> children;
 
     /**
      * constructor for Node given only a value (null parent)
      * @param v value of Node
      */
     public Node(String v) {
+        this.children = new ArrayList<Node>();
         this.value = v;
     }
 
@@ -23,6 +24,7 @@ public class Node {
      * @param v value of Node
      */
     public Node(String v, Node p) {
+        this.children = new ArrayList<Node>();
         this.value = v;
         this.parent = p;
     }

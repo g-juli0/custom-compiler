@@ -1,11 +1,10 @@
-import java.util.ArrayList;
 
 /**
  * parse tree class
  */
 public class SyntaxTree {
     
-    public Node root;
+    private Node root;
 
     public SyntaxTree(Node r) {
         this.root = r;
@@ -18,19 +17,6 @@ public class SyntaxTree {
     public Node getRoot() {
         return this.root;
     }
-
-    // dont need?
-    /*
-    public void addNode(Node newChild) {
-        this.root.addChild(newChild);
-    }
-
-    public void addTree(SyntaxTree newTree) {
-        Node newTreeRoot = newTree.getRoot();
-
-        this.root.addChild(newTreeRoot);
-        newTreeRoot.setParent(this.root);
-    }*/
 
     /**
      * returns depth of Node n

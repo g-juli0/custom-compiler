@@ -534,37 +534,62 @@ public class Parser extends Component {
      * boolop ::== == | !=
      */
     private void parseBoolOp(Node parent) {
-        /*
-        if(==) {
+        // log debug message
+        this.log("DEBUG", "parseBoolOp()");
+
+        // create new Node and add it to tree
+        Node boolOpNode = new Node("boolop", parent);
+
+        // peek at current Token for Value checking
+        String currentValue = this.peek().getValue();
+
+        if(currentValue.equals("==")) {
             match("==");
-        } else if (!=) {
-            match("!=")
+            boolOpNode.addChild(new Node("==", boolOpNode));
+        } else if (currentValue.equals("!=")) {
+            match("!=");
+            boolOpNode.addChild(new Node("!=", boolOpNode));
         } else {
-            error: expected [boolop: == or !=], found ____
+            this.log("ERROR", "Expected boolop [==, !=] , found [ " + currentValue + " ]");
         }
-         */
     }
 
     /**
      * boolval ::== false | true
      */
     private void parseBoolVal(Node parent) {
-        /*
-        if(true) {
+        // log debug message
+        this.log("DEBUG", "parseBoolVal()");
+
+        // create new Node and add it to tree
+        Node boolValNode = new Node("boolval", parent);
+
+        // peek at current Token for Value checking
+        Kind currentKind = this.peek().getKind();
+
+        if(currentKind == Kind.TRUE) {
             match("true");
-        } else if (false) {
+            boolValNode.addChild(new Node("true", boolValNode));
+        } else if (currentKind == Kind.FALSE) {
             match("false");
+            boolValNode.addChild(new Node("false", boolValNode));
         } else {
-            // error: expected [boolval: true or false], found ____
+            this.log("ERROR", "Expected boolval [true, false] , found [ " + currentKind + " ]");
         }
-         */
     }
 
     /**
      * intop ::== +
      */
     private void parseIntOp(Node parent) {
+        // log debug message
+        this.log("DEBUG", "parseIntOp()");
+
+        // create new Node and add it to tree
+        Node intOpNode = new Node("intop", parent);
+
         match("+");
+        intOpNode.addChild(new Node("+", intOpNode));
     }
 
     /**
@@ -572,7 +597,7 @@ public class Parser extends Component {
      */
     private void printCST() {
         // print concrete syntax tree
-        System.out.println(this.CST.depthFirstTraversal(this.CST.root));
+        System.out.println(this.CST.depthFirstTraversal(this.CST.getRoot()));
     }
 
     /**

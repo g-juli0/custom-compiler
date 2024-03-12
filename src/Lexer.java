@@ -44,9 +44,13 @@ public class Lexer extends Component {
             char[] charList = progLine.toCharArray();
             // send to helper function to tokenize entire line of chars and add result to token stream
             tokenStream.addAll(tokenize(charList, line));
+            
             // increment line number at the end of each line
             line++;
         }
+
+        // debug output - prints each Token kind and value 
+        //System.out.println(tokenStream.toString());
 
         // check for last EOP symbol
         checkEOP();
@@ -256,7 +260,7 @@ public class Lexer extends Component {
      * @param alert type of alert
      * @param msg specific message
      */
-    private void log(String alert, String msg) {
+    public void log(String alert, String msg) {
         super.log(alert, "Lexer", msg);
     }
 }

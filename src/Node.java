@@ -22,9 +22,9 @@ public class Node {
      * @param p parent Node
      * @param v value of Node
      */
-    public Node(Node p, String v) {
-        this.parent = p;
+    public Node(String v, Node p) {
         this.value = v;
+        this.parent = p;
     }
     
     /**
@@ -72,6 +72,6 @@ public class Node {
      * @return true if children ArrayList not empty
      */
     public boolean hasChildren() {
-        return this.children.size() > 0;
+        return !this.children.isEmpty();
     }
 }

@@ -49,7 +49,7 @@ public class Parser extends Component {
      */
     private void match(String expectedValue) {
         // if end of stream reached, error
-        if(tokenStream.size() < 1) {
+        if(tokenStream.isEmpty()) {
             this.log("ERROR", "Expected [ " + expectedValue + " ], found end of stream.");
             errorCount++;
         } else {
@@ -59,7 +59,7 @@ public class Parser extends Component {
                 // remove Token and continue
                 this.pop();
             } else {
-                this.log("ERROR", "Expected [ " + expectedValue + " ], found " + currentToken.getKind().toString());
+                this.log("ERROR", "Expected [ " + expectedValue + " ], found " + currentToken.getValue());
                 errorCount++;
             }
         }
@@ -69,20 +69,34 @@ public class Parser extends Component {
      * Program ::== Block $
      */
     private void parse() {
-        // create new tree and log debug message
-        this.CST = new SyntaxTree(new Node("<Program>"));
+        // log debug message
         this.log("DEBUG", "parse()");
 
-        parseBlock();
+        // create new Node and add it to tree
+        Node root = new Node("<Program>");
+        this.CST = new SyntaxTree(root);
+
+        // parse Block
+        parseBlock(root);
+
+        // match EOP symbol and add child Node
         match("$");
+        root.addChild(new Node("[$]", root));
     }
 
     /**
      * Block ::== { StatementList }
      */
-    private void parseBlock() {
+    private void parseBlock(Node root) {
+        // log debug message
+        this.log("DEBUG", "parseBlock()");
+
+        // create new Node and add it to tree
+        Node blockNode = new Node("<Block>");
+
+        blockNode.addChild(new Node("{", blockNode));
         match("{");
-        parseStatementList();
+        parseStatementList(blockNode);
         match("}");
     }
 
@@ -90,15 +104,22 @@ public class Parser extends Component {
      * StatementList ::== Statement StatementList
      *               ::== epsilon (empty) production
      */
-    private void parseStatementList() {
-        /*
-        if(print || assign || vardecl || while || if || {)
-        parseStatement();
-        parseStatementList();
-        else {
+    private void parseStatementList(Node root) {
+        Kind expectedKind = this.peek().getKind();
+
+        // if the expected Kind of Token is a statement
+        if(expectedKind == Kind.PRINT || 
+                expectedKind == Kind.ID || 
+                expectedKind == Kind.TYPE_INT || 
+                expectedKind == Kind.TYPE_STRING || 
+                expectedKind == Kind.TYPE_BOOLEAN || 
+                expectedKind == Kind.WHILE || 
+                expectedKind == Kind.IF) {
+            parseStatement();
+            parseStatementList();
+        } else {
             // do nothing, epsilon (empty) production
         }
-        */
     }
 
     /**
@@ -109,30 +130,33 @@ public class Parser extends Component {
      *           ::== IfStatement
      *           ::== Block
      */
-    private void parseStatement() {
-        /* 
-        if(print) {
+    private void parseStatement(Node root) {
+        Kind expectedKind = this.peek().getKind();
+        String expectedValue = this.peek().getValue();
+        
+        if(expectedKind == Kind.PRINT) {
             parsePrintStatement();
-        } else if (assign) {
+        } else if (expectedKind == Kind.ASSIGN_OP) {
             parseAssignmentStatement();
-        } else if (vardecl) {
+        } else if (expectedKind == Kind.TYPE_INT || 
+                expectedKind == Kind.TYPE_STRING ||
+                expectedKind == Kind.TYPE_BOOLEAN) {
             parseVarDecl();
-        } else if (while) {
+        } else if (expectedKind == Kind.WHILE) {
             parseWhileStatement();
-        } else if (if) {
+        } else if (expectedKind == Kind.IF) {
             parseIfStatement();
-        } else if ({) { // new block
+        } else if (expectedValue.equals("{")) { // new block
             parseBlock();
         } else {
-            // error: expected [^^^], found ____
+            this.log("ERROR", "Expected ___ , found" + expectedKind + " with value [ " + expectedValue + " ]");
         }
-         */
     }
 
     /**
      * PrintStatement ::== print ( Expr )
      */
-    private void parsePrintStatement() {
+    private void parsePrintStatement(Node root) {
         match("print");
         match("(");
         parseExpr();
@@ -142,7 +166,7 @@ public class Parser extends Component {
     /**
      * AssignmentStatement ::== Id = Expr
      */
-    private void parseAssignmentStatement() {
+    private void parseAssignmentStatement(Node root) {
         parseId();
         match("=");
         parseExpr();
@@ -151,7 +175,7 @@ public class Parser extends Component {
     /**
      * VarDecl ::== type Id
      */
-    private void parseVarDecl() {
+    private void parseVarDecl(Node root) {
         parseType();
         parseId();
     }
@@ -159,7 +183,7 @@ public class Parser extends Component {
     /**
      * WhileStatement ::== while BooleanExpr Block
      */
-    private void parseWhileStatement() {
+    private void parseWhileStatement(Node root) {
         match("while");
         parseBooleanExpr();
         parseBlock();
@@ -168,7 +192,7 @@ public class Parser extends Component {
     /**
      * IfStatement ::== if BooleanExpr Block
      */
-    private void parseIfStatement() {
+    private void parseIfStatement(Node root) {
         match("if");
         parseBooleanExpr();
         parseBlock();
@@ -180,7 +204,7 @@ public class Parser extends Component {
      *      ::== BooleanExpr
      *      ::== Id
      */
-    private void parseExpr() {
+    private void parseExpr(Node root) {
         /*
         if(int) {
             parseIntExpr();
@@ -200,7 +224,7 @@ public class Parser extends Component {
      * IntExpr ::== digit intop Expr
      *         ::== digit
      */
-    private void parseIntExpr() {
+    private void parseIntExpr(Node root) {
         /*
         parseDigit();
         if(next == intop) {
@@ -213,7 +237,7 @@ public class Parser extends Component {
     /**
      * StringExpr ::== " CharList "
      */
-    private void parseStringExpr() {
+    private void parseStringExpr(Node root) {
         match("\"");
         parseCharList();
         match("\"");
@@ -223,7 +247,7 @@ public class Parser extends Component {
      * BooleanExpr ::== ( Expr boolop Expr )
      *             ::== boolval
      */
-    private void parseBooleanExpr() {
+    private void parseBooleanExpr(Node root) {
         /*
         if(true or false) {
             parseBoolVal();
@@ -240,7 +264,7 @@ public class Parser extends Component {
     /**
      * Id ::== char
      */
-    private void parseId() {
+    private void parseId(Node root) {
         parseChar();
     }
 
@@ -248,7 +272,7 @@ public class Parser extends Component {
      * CharList ::== char CharList
      *          ::== space CharList
      */
-    private void parseCharList() {
+    private void parseCharList(Node root) {
         /*
         if(char) {
             parseChar();
@@ -263,7 +287,7 @@ public class Parser extends Component {
     /**
      * type ::== int | string | boolean
      */
-    private void parseType() {
+    private void parseType(Node root) {
         /*
         if(int) {
             match("int");
@@ -278,7 +302,7 @@ public class Parser extends Component {
     /**
      * char ::== a | b | c | ... | z
      */
-    private void parseChar() {
+    private void parseChar(Node root) {
         /*
         switch(c) {
             case "a": match("a"); break;
@@ -293,14 +317,14 @@ public class Parser extends Component {
      * space ::== ' '
      *            (space character)
      */
-    private void parseSpace() {
+    private void parseSpace(Node root) {
         match(" ");
     }
 
     /**
      * digit ::== 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
      */
-    private void parseDigit() {
+    private void parseDigit(Node root) {
         /*
         switch(d) {
             case "0": match("0"); break;
@@ -314,7 +338,7 @@ public class Parser extends Component {
     /**
      * boolop ::== == | !=
      */
-    private void parseBoolOp() {
+    private void parseBoolOp(Node root) {
         /*
         if(==) {
             match("==");
@@ -329,7 +353,7 @@ public class Parser extends Component {
     /**
      * boolval ::== false | true
      */
-    private void parseBoolVal() {
+    private void parseBoolVal(Node root) {
         /*
         if(true) {
             match("true");
@@ -344,12 +368,16 @@ public class Parser extends Component {
     /**
      * intop ::== +
      */
-    private void parseIntOp() {
+    private void parseIntOp(Node root) {
         match("+");
     }
 
+    /**
+     * prints formatted concrete syntax tree
+     */
     private void printCST() {
         // print concrete syntax tree
+        System.out.println(this.CST.depthFirstTraversal(this.CST.root));
     }
 
     /**
@@ -365,7 +393,7 @@ public class Parser extends Component {
      * @param alert type of alert
      * @param msg specific message
      */
-    private void log(String alert, String msg) {
+    public void log(String alert, String msg) {
         super.log(alert, "Parser", msg);
     }
 }

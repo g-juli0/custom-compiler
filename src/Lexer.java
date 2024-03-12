@@ -3,11 +3,8 @@ import java.util.ArrayList;
 /**
  * Lexer class for compiler
  * 
- * warnings         - unclosed quote warning
- * (to implement)   - unclosed comment warning
- * digits should be invlaid within quotes (charList)
- * 
- * errors           - multiline quote handling
+ * digits should be invlaid within quotes and print
+ * backtracking needed for id/keyword recognition
  */
 public class Lexer extends Component {
     
@@ -120,8 +117,13 @@ public class Lexer extends Component {
                             break;
                         }
                     }
-                    this.log("DEBUG", getKeyword(tokenBuilder).toString() + " [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-                    i--; // back up one position to read the close quote properly
+                    if(getKeyword(tokenBuilder) != Kind.ERROR) {
+                        this.log("DEBUG", getKeyword(tokenBuilder).toString() + " [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                        i--; // back up one position to read the close quote properly
+                    } else {
+                        this.log("ERROR", "Unrecognized token [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                        errorCount++;
+                    }
                 }
 
             // SYMBOL DETECTION
@@ -183,16 +185,21 @@ public class Lexer extends Component {
                 i++;
                 String temp = Character.toString(charList[i]);
 
-                while(!temp.equals("\"")) {
-                    // add and log chars within quote
-                    lineTokens.add(new Token(Kind.CHAR, temp, debug));
-                    this.log("DEBUG", "CHAR [ " + temp + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-                    i++; // increment position
-                    temp = Character.toString(charList[i]);
+                try {
+                    while(!temp.equals("\"")) {
+                        // add and log chars within quote
+                        lineTokens.add(new Token(Kind.CHAR, temp, debug));
+                        this.log("DEBUG", "CHAR [ " + temp + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                        i++; // increment position
+                        temp = Character.toString(charList[i]);
+                    }
+                    // add and log close quote
+                    lineTokens.add(new Token(Kind.QUOTE, tokenBuilder, debug));
+                    this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                } catch (ArrayIndexOutOfBoundsException ex) {
+                    this.log("ERROR", "Unclosed quote [ \" ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                    errorCount++;
                 }
-                // add and log close quote
-                lineTokens.add(new Token(Kind.QUOTE, tokenBuilder, debug));
-                this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
             
             // COMMENT DETECTION
             } else if (tokenBuilder.equals("/")) {
@@ -202,14 +209,19 @@ public class Lexer extends Component {
                     i = i+2; // adjust position to first symbol after comment open
                     String current = Character.toString(charList[i+1]);
                     
-                    while(!current.equals("*")) {
-                        current = Character.toString(charList[i+1]);
-                        i++; // increment position
+                    try {
+                        while(!current.equals("*")) {
+                            current = Character.toString(charList[i+1]);
+                            i++; // increment position
 
-                        if(current.equals("*") && Character.toString(charList[i+1]).equals("/")) {
-                            i = i+2; // adjust position to first symbol after comment close
-                            break;
+                            if(current.equals("*") && Character.toString(charList[i+1]).equals("/")) {
+                                i = i+2; // adjust position to first symbol after comment close
+                                break;
+                            }
                         }
+                    } catch (ArrayIndexOutOfBoundsException ex) {
+                        this.log("ERROR", "Unclosed comment [ */ ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                    errorCount++;
                     }
                 }
 

@@ -122,4 +122,4 @@ s = "this string is /* in */ visible"
 
 {a=12}$
 
-/* no EOP $ */ {int i = 1}
+{/* no EOP $ */ int i = 1}

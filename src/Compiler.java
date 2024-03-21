@@ -49,7 +49,7 @@ public class Compiler {
                         }
                         */
                     } else {
-                        //System.err.println("INFO - Parse failed on " + programNo + ". Skipping remaining compiler phases.");
+                        System.err.println("INFO - Parse failed on " + programNo + ". Skipping remaining compiler phases.");
                     }
                 } else {
                     System.err.println("INFO - Lex failed on program " + programNo + ". Skipping remaining compiler phases.");

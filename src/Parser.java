@@ -32,7 +32,7 @@ public class Parser extends Component {
      * @return next Token
      */
     private Token pop() {
-        return tokenStream.remove(0);
+        return this.tokenStream.remove(0);
     }
 
     /**
@@ -40,7 +40,7 @@ public class Parser extends Component {
      * @return next Token
      */
     private Token peek() {
-        return tokenStream.get(0);
+        return this.tokenStream.get(0);
     }
 
     /**
@@ -58,6 +58,7 @@ public class Parser extends Component {
             if(currentToken.getValue().equals(expectedValue)) {
                 // remove Token and continue
                 this.pop();
+                // VALID EXPECTED MSG
             } else {
                 this.log("ERROR", "Expected [ " + expectedValue + " ], found " + currentToken.getValue());
                 errorCount++;
@@ -127,11 +128,13 @@ public class Parser extends Component {
                 currentKind == Kind.TYPE_STRING || 
                 currentKind == Kind.TYPE_BOOLEAN || 
                 currentKind == Kind.WHILE || 
-                currentKind == Kind.IF) {
+                currentKind == Kind.IF ||
+                currentKind == Kind.OPEN_BLOCK) {
             parseStatement(statementListNode);
             parseStatementList(statementListNode);
         } else {
             // do nothing, epsilon (empty) production
+            // check if statementlist ends "}"
         }
     }
 
@@ -172,7 +175,7 @@ public class Parser extends Component {
         } else if (currentKind == Kind.IF) {
             parseIfStatement(statementNode);
         // Block
-        } else if (currentValue.equals("{")) {
+        } else if (currentKind == Kind.OPEN_BLOCK) {
             parseBlock(statementNode);
         // error - unexpected token
         } else {
@@ -541,12 +544,13 @@ public class Parser extends Component {
         Node boolOpNode = new Node("boolop", parent);
 
         // peek at current Token for Value checking
+        Kind currentKind = this.peek().getKind();
         String currentValue = this.peek().getValue();
 
-        if(currentValue.equals("==")) {
+        if(currentKind == Kind.EQUALITY_OP) {
             match("==");
             boolOpNode.addChild(new Node("==", boolOpNode));
-        } else if (currentValue.equals("!=")) {
+        } else if (currentKind == Kind.INEQUALITY_OP) {
             match("!=");
             boolOpNode.addChild(new Node("!=", boolOpNode));
         } else {

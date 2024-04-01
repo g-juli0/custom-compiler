@@ -14,7 +14,7 @@ public class Component {
 
     }
 
-        /**
+    /**
      * checks if given character is a letter
      * @param v current token value
      * @return true if letter

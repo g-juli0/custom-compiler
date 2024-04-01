@@ -106,14 +106,14 @@ public class Lexer extends Component {
                         temp = Character.toString(charList[i]);
 
                         // once a keyword is detected, add the token and break out of the loop
-                        if(isKeyword(tokenBuilder)) {
+                        if(isKeyword(tokenBuilder) && getKeyword(temp) != Kind.ERROR) {
                             lineTokens.add(new Token(getKeyword(temp), temp));
                             break;
                         }
                     }
                     if(getKeyword(tokenBuilder) != Kind.ERROR) {
                         this.log("DEBUG", getKeyword(tokenBuilder).toString() + " [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-                        i--; // back up one position to read the close quote properly
+                        i--; // back up one position to read the input properly
                     } else {
                         this.log("ERROR", "Unrecognized token [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                         errorCount++;

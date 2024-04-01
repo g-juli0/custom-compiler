@@ -3,7 +3,7 @@ import java.util.ArrayList;
 /**
  * Lexer class for compiler
  * 
- * digits should be invlaid within quotes and print
+ * digits should be invalid within quotes and print
  * backtracking needed for id/keyword recognition
  */
 public class Lexer extends Component {
@@ -17,12 +17,9 @@ public class Lexer extends Component {
      * constructor for lexer. tokenizes program given on constructor call
      * @param program String of program to be lexed
      * @param programNo program number for debug printing
-     * @param verbose verbose mode for debugging, true by default
      */
-    public Lexer(String program, int programNo, boolean verbose) {
+    public Lexer(String program, int programNo) {
         // initialize flags and local variables
-        super(verbose);
-
         warningCount = 0;
         errorCount = 0;
 
@@ -45,9 +42,6 @@ public class Lexer extends Component {
             // increment line number at the end of each line
             line++;
         }
-
-        // debug output - prints each Token kind and value 
-        //System.out.println(tokenStream.toString());
 
         // check for last EOP symbol
         checkEOP();
@@ -98,7 +92,7 @@ public class Lexer extends Component {
 
                 // ID DETECTION
                 if(!isLetter(lookahead)) {
-                    lineTokens.add(new Token(Kind.ID, tokenBuilder, debug));
+                    lineTokens.add(new Token(Kind.ID, tokenBuilder));
                     this.log("DEBUG", "ID [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 
                 // KEYWORD DETECTION
@@ -113,7 +107,7 @@ public class Lexer extends Component {
 
                         // once a keyword is detected, add the token and break out of the loop
                         if(isKeyword(tokenBuilder)) {
-                            lineTokens.add(new Token(getKeyword(temp), temp, debug));
+                            lineTokens.add(new Token(getKeyword(temp), temp));
                             break;
                         }
                     }
@@ -129,32 +123,32 @@ public class Lexer extends Component {
             // SYMBOL DETECTION
             } else if(isSymbol(tokenBuilder)) {
                 if(tokenBuilder.equals("+")) {          // +
-                    lineTokens.add(new Token(Kind.ADD_OP, tokenBuilder, debug));
+                    lineTokens.add(new Token(Kind.ADD_OP, tokenBuilder));
                     this.log("DEBUG", "ADD_OP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 } else if(tokenBuilder.equals("{")) {   // {
-                    lineTokens.add(new Token(Kind.OPEN_BLOCK, tokenBuilder, debug));
+                    lineTokens.add(new Token(Kind.OPEN_BLOCK, tokenBuilder));
                     this.log("DEBUG", "OPEN_BLOCK [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 } else if(tokenBuilder.equals("}")) {   // }
-                    lineTokens.add(new Token(Kind.CLOSE_BLOCK, tokenBuilder, debug));
+                    lineTokens.add(new Token(Kind.CLOSE_BLOCK, tokenBuilder));
                     this.log("DEBUG", "CLOSE_BLOCK [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 } else if(tokenBuilder.equals("(")) {   // (
-                    lineTokens.add(new Token(Kind.OPEN_PAREN, tokenBuilder, debug));
+                    lineTokens.add(new Token(Kind.OPEN_PAREN, tokenBuilder));
                     this.log("DEBUG", "OPEN_PAREN [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 } else if(tokenBuilder.equals(")")) {   // )
-                    lineTokens.add(new Token(Kind.CLOSE_PAREN, tokenBuilder, debug));
+                    lineTokens.add(new Token(Kind.CLOSE_PAREN, tokenBuilder));
                     this.log("DEBUG", "CLOSE_PAREN [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 } else if(tokenBuilder.equals("$")) {   // $
-                    lineTokens.add(new Token(Kind.EOP, tokenBuilder, debug));
+                    lineTokens.add(new Token(Kind.EOP, tokenBuilder));
                     this.log("DEBUG", "EOP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 } else if (tokenBuilder.equals("=")) {
                     lookahead = Character.toString(charList[i+1]);
                     if(lookahead.equals("=")) {         // ==
                         i++; // increment position
                         tokenBuilder += lookahead;
-                        lineTokens.add(new Token(Kind.EQUALITY_OP, tokenBuilder, debug));
+                        lineTokens.add(new Token(Kind.EQUALITY_OP, tokenBuilder));
                         this.log("DEBUG", "EQUALITY_OP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                     } else {                                    // =
-                        lineTokens.add(new Token(Kind.ASSIGN_OP, tokenBuilder, debug));
+                        lineTokens.add(new Token(Kind.ASSIGN_OP, tokenBuilder));
                         this.log("DEBUG", "ASSIGN_OP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                     }
                 } else if (tokenBuilder.equals("!")) {  // !
@@ -162,7 +156,7 @@ public class Lexer extends Component {
                     if(lookahead.equals("=")) {         // !=
                         i++; // increment position
                         tokenBuilder += lookahead;
-                        lineTokens.add(new Token(Kind.INEQUALITY_OP, tokenBuilder, debug));
+                        lineTokens.add(new Token(Kind.INEQUALITY_OP, tokenBuilder));
                         this.log("DEBUG", "INEQUALITY_OP [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                     } else {
                         errorCount++;
@@ -172,13 +166,13 @@ public class Lexer extends Component {
 
             // DIGIT DETECTION
             } else if(isDigit(tokenBuilder)) {
-                lineTokens.add(new Token(Kind.DIGIT, tokenBuilder, debug));
+                lineTokens.add(new Token(Kind.DIGIT, tokenBuilder));
                 this.log("DEBUG", "DIGIT [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
 
             // QUOTE DETECTION
             } else if(tokenBuilder.equals("\"")) {
                 // add and log open quote
-                lineTokens.add(new Token(Kind.QUOTE, tokenBuilder, debug));
+                lineTokens.add(new Token(Kind.QUOTE, tokenBuilder));
                 this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 
                 // increment to first expected char and set temp string to keep track of quote characters
@@ -188,13 +182,13 @@ public class Lexer extends Component {
                 try {
                     while(!temp.equals("\"")) {
                         // add and log chars within quote
-                        lineTokens.add(new Token(Kind.CHAR, temp, debug));
+                        lineTokens.add(new Token(Kind.CHAR, temp));
                         this.log("DEBUG", "CHAR [ " + temp + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                         i++; // increment position
                         temp = Character.toString(charList[i]);
                     }
                     // add and log close quote
-                    lineTokens.add(new Token(Kind.QUOTE, tokenBuilder, debug));
+                    lineTokens.add(new Token(Kind.QUOTE, tokenBuilder));
                     this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 } catch (ArrayIndexOutOfBoundsException ex) {
                     this.log("ERROR", "Unclosed quote [ \" ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
@@ -228,7 +222,6 @@ public class Lexer extends Component {
             // WHITESPACE DETECTION
             } else if(isWhiteSpace(tokenBuilder)) {
                 // do nothing on whitespace detection
-                continue;
             
             // ERROR DETECTION
             } else {
@@ -255,7 +248,7 @@ public class Lexer extends Component {
             this.log("WARNING", "missing EOP symbol [ $ ]");
             warningCount++;
             this.log("INFO", "EOP symbol [ $ ] added to token stream");
-            tokenStream.add(new Token(Kind.EOP, "$", debug));
+            tokenStream.add(new Token(Kind.EOP, "$"));
         }
     }
 

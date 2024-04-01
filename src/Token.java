@@ -12,8 +12,7 @@ public class Token extends Component {
      * @param k Kind of Token
      * @param v value of Token
      */
-    public Token(Kind k, String v, boolean verbose) {
-        super(verbose);
+    public Token(Kind k, String v) {
         this.kindOfToken = k;
         this.value = v;
     }

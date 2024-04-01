@@ -69,7 +69,6 @@ public class SyntaxTree {
                 cst += depthFirstTraversal(child);
             }
         }
-
         return cst;
     }
 }

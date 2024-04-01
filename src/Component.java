@@ -4,15 +4,14 @@
  */
 public class Component {
     
-    public boolean debug;
+    // verbose mode on by default
+    private static boolean debug = true;
 
     /**
      * constructor
-     * @param verbose debug flag
      */
-    public Component(boolean verbose) {
-        // verbose mode on by default
-        this.debug = verbose;
+    public Component() {
+
     }
 
         /**
@@ -51,7 +50,8 @@ public class Component {
         return v.equals("\t") || 
                 v.equals(" ") || 
                 v.equals("\r") || 
-                v.equals("\n");
+                v.equals("\n") ||
+                v.equals("\r\n");
     }
 
     /**

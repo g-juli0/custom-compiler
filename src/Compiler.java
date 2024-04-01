@@ -8,11 +8,7 @@ import java.util.Scanner;
  */
 public class Compiler {
 
-    public static void main(String[] args) {
-
-        // verbose mode flag - true by default
-        boolean verbose = true;
-        
+    public static void main(String[] args) {        
         try {
             // read file
             ArrayList<String> programList = readFile(args[0]);
@@ -26,33 +22,32 @@ public class Compiler {
                 System.out.println("INFO - Compiling program " + programNo + "...");
 
                 // do lex
-                Lexer lex = new Lexer(programList.get(i), programNo, verbose);
+                Lexer lex = new Lexer(programList.get(i), programNo);
                 
                 if(lex.success()) {
                     // do parse
-                    Parser parse = new Parser(lex.getTokenStream(), programNo, verbose);
+                    Parser parse = new Parser(lex.getTokenStream(), programNo);
                     
                     if(parse.success()) {
                         // do semantic analysis
-                        /*
-                        SemanticAnalyzer analyzer = new SemanticAnalyzer(placeholder, programNo, verbose);
+                        SemanticAnalyzer analyzer = new SemanticAnalyzer(lex.getTokenStream(), programNo);
 
                         if(analyzer.success()) {
                             // generate opcode
-                            CodeGenerator generator = new CodeGenerator(placeholder, programNo, verbose);
+                            /*
+                            CodeGenerator generator = new CodeGenerator(placeholder, programNo);
 
                             if(generator.success()) {
                                 System.out.println("INFO - Program " + programNo + " successfully compiled");
-                            }
+                            } */
                         } else {
-                            System.err.println("INFO - Semantic analyzer failed on " + programNo + ". Skipping remaining compiler phases.");
+                            System.err.println("INFO - Semantic analyzer failed on program " + programNo + ". Skipping remaining compiler phases.\n");
                         }
-                        */
                     } else {
-                        System.err.println("INFO - Parse failed on " + programNo + ". Skipping remaining compiler phases.");
+                        System.err.println("INFO - Parse failed on program " + programNo + ". Skipping remaining compiler phases.\n");
                     }
                 } else {
-                    System.err.println("INFO - Lex failed on program " + programNo + ". Skipping remaining compiler phases.");
+                    System.err.println("INFO - Lex failed on program " + programNo + ". Skipping remaining compiler phases.\n");
                 }
             }
         // error catching

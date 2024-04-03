@@ -1,5 +1,7 @@
 /**
- * Token examples:
+ * Token item to be added to the Token stream
+ * 
+ * Examples:
  *      <id, x> <assign> <id, y> <add> <id, y>
  */
 public class Token extends Component {
@@ -43,6 +45,9 @@ public class Token extends Component {
     }
 }
 
+/**
+ * "Kind" of Tokens recognized by the Lexer
+ */
 enum Kind {
     // block types
     OPEN_BLOCK,

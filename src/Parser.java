@@ -1,5 +1,8 @@
 import java.util.ArrayList;
 
+/**
+ * Parser Component of Compiler
+ */
 public class Parser extends Component {
     
     private int warningCount;   // number of detected warnings
@@ -8,7 +11,13 @@ public class Parser extends Component {
     private ArrayList<Token> tokenStream;
     private SyntaxTree CST;
 
+    /**
+     * constructor for parse component. begins recursive descent parse on constructor call
+     * @param stream ArrayList of Tokens recognized by the lexer
+     * @param programNo program number for debug printing
+     */
     public Parser(ArrayList<Token> stream, int programNo) {
+        // initialize flags and variables
         this.tokenStream = stream;
 
         warningCount = 0;
@@ -16,8 +25,10 @@ public class Parser extends Component {
 
         this.log("INFO", "Parsing program " + Integer.toString(programNo) + "...");
 
+        // entry point for recursive descent parsing
         parse();
 
+        // print success or failure message, as well as CST on success
         if(this.success()) {
             this.log("INFO", "Parse completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             this.printCST();
@@ -65,6 +76,9 @@ public class Parser extends Component {
         }
     }
 
+    /**
+     * entry point for recursive descent parsing
+     */
     private void parse() {
         this.log("DEBUG", "parse()");
         parseProgram();

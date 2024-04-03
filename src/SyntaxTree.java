@@ -1,6 +1,6 @@
 
 /**
- * parse tree class
+ * SyntaxTree class used to create parse tree
  */
 public class SyntaxTree {
     
@@ -31,7 +31,6 @@ public class SyntaxTree {
             n = n.getParent();
             depth++;
         }
-
         return depth;
     }
 
@@ -47,7 +46,6 @@ public class SyntaxTree {
         for(int i = 0; i < depth; i++) {
             dashes += "-";
         }
-
         return dashes;
     }
 
@@ -60,8 +58,14 @@ public class SyntaxTree {
     public String depthFirstTraversal(Node start) {
         String cst = "";
 
+        // formatting and adding "name" of Node to output string
         cst += dashes(getDepth(start));
-        cst += start.getValue() + "\n";
+        String val = start.getValue();
+        if(val.length() == 1) {
+            cst += "[" + val + "]\n";
+        } else {
+            cst += "<" + val + ">\n";
+        }
         
         // if the node has children, perform a depth first traversal on each child
         if(start.hasChildren()) {

@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 /**
- * Lexer class for compiler
+ * Lexer Component of Compiler
  */
 public class Lexer extends Component {
     
@@ -11,12 +11,12 @@ public class Lexer extends Component {
     private ArrayList<Token> tokenStream;
     
     /**
-     * constructor for lexer. tokenizes program given on constructor call
+     * constructor for lexer component. tokenizes program given on constructor call
      * @param program String of program to be lexed
-     * @param programNo program number for debug printing
+     * @param programNo program number for debug logging
      */
     public Lexer(String program, int programNo) {
-        // initialize flags and local variables
+        // initialize flags and variables
         warningCount = 0;
         errorCount = 0;
 
@@ -175,8 +175,7 @@ public class Lexer extends Component {
                 lineTokens.add(new Token(Kind.QUOTE, tokenBuilder));
                 this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 
-                // increment to first expected char and set temp string to keep track of quote characters
-                i++;
+                i++; // increment to first expected char and set temp string to keep track of quote characters
                 String temp = Character.toString(charList[i]);
 
                 try {
@@ -190,9 +189,8 @@ public class Lexer extends Component {
                         } else {
                             this.log("ERROR", "Unrecognized character [ " + temp + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                             errorCount++;
-                            i++;
+                            i++; // increment position and reassign temp to continue loop even after invalid character is recognized
                             temp = Character.toString(charList[i]);
-                            //break;
                         }
                     }
                     // add and log close quote if no errors were generated

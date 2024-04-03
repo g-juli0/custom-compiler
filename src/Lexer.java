@@ -2,9 +2,6 @@ import java.util.ArrayList;
 
 /**
  * Lexer class for compiler
- * 
- * digits should be invalid within quotes and print
- * backtracking needed for id/keyword recognition
  */
 public class Lexer extends Component {
     
@@ -98,25 +95,28 @@ public class Lexer extends Component {
                 // KEYWORD DETECTION
                 } else {
                     String temp = lookahead;
+                    int tempCounter = i;
                     // adjust current position
-                    i++;
+                    tempCounter++;
                     while(isLetter(temp)) {
                         tokenBuilder += temp;
-                        i++; // increment position
-                        temp = Character.toString(charList[i]);
+                        tempCounter++;     // increment position
+                        temp = Character.toString(charList[tempCounter]);
 
                         // once a keyword is detected, add the token and break out of the loop
-                        if(isKeyword(tokenBuilder) && getKeyword(temp) != Kind.ERROR) {
-                            lineTokens.add(new Token(getKeyword(temp), temp));
+                        if(isKeyword(tokenBuilder)) {
                             break;
                         }
                     }
                     if(getKeyword(tokenBuilder) != Kind.ERROR) {
                         this.log("DEBUG", getKeyword(tokenBuilder).toString() + " [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-                        i--; // back up one position to read the input properly
+                        lineTokens.add(new Token(getKeyword(tokenBuilder), tokenBuilder));
+                        i = tempCounter-1; // back up one position to read the input properly
                     } else {
-                        this.log("ERROR", "Unrecognized token [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-                        errorCount++;
+                        // backtrack
+                        String id = Character.toString(charList[i]);
+                        lineTokens.add(new Token(Kind.ID, id));
+                        this.log("DEBUG", "ID [ " + id + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                     }
                 }
 
@@ -182,12 +182,20 @@ public class Lexer extends Component {
                 try {
                     while(!temp.equals("\"")) {
                         // add and log chars within quote
-                        lineTokens.add(new Token(Kind.CHAR, temp));
-                        this.log("DEBUG", "CHAR [ " + temp + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
-                        i++; // increment position
-                        temp = Character.toString(charList[i]);
+                        if(isLetter(temp) || temp.equals(" ")) {
+                            lineTokens.add(new Token(Kind.CHAR, temp));
+                            this.log("DEBUG", "CHAR [ " + temp + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                            i++; // increment position
+                            temp = Character.toString(charList[i]);
+                        } else {
+                            this.log("ERROR", "Unrecognized character [ " + temp + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
+                            errorCount++;
+                            i++;
+                            temp = Character.toString(charList[i]);
+                            //break;
+                        }
                     }
-                    // add and log close quote
+                    // add and log close quote if no errors were generated
                     lineTokens.add(new Token(Kind.QUOTE, tokenBuilder));
                     this.log("DEBUG", "QUOTE [ " + tokenBuilder + " ] detected at (" + Integer.toString(line) + ":" + Integer.toString(i) + ")");
                 } catch (ArrayIndexOutOfBoundsException ex) {
@@ -201,7 +209,7 @@ public class Lexer extends Component {
 
                 if(lookahead.equals("*")) {
                     i = i+2; // adjust position to first symbol after comment open
-                    String current = Character.toString(charList[i+1]);
+                    String current = Character.toString(charList[i]);
                     
                     try {
                         while(!current.equals("*")) {
@@ -209,7 +217,7 @@ public class Lexer extends Component {
                             i++; // increment position
 
                             if(current.equals("*") && Character.toString(charList[i+1]).equals("/")) {
-                                i = i+2; // adjust position to first symbol after comment close
+                                i++; // adjust position to first symbol after comment close
                                 break;
                             }
                         }

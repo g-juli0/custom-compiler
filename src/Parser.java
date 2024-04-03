@@ -185,7 +185,7 @@ public class Parser extends Component {
             parseBlock(statementNode);
         // error - unexpected token
         } else {
-            this.log("ERROR", "Expected Statement [PRINT, ID, TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, WHILE, IF, OPEN_BLOCK] , found" + currentKind + " with value [ " + currentValue + " ]");
+            this.log("ERROR", "Expected Statement [PRINT, ID, TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, WHILE, IF, OPEN_BLOCK] , found " + currentKind + " with value [ " + currentValue + " ]");
         }
     }
 
@@ -300,16 +300,18 @@ public class Parser extends Component {
         Kind currentKind = this.peek().getKind();
         String currentValue = this.peek().getValue();
 
-        if(currentKind == Kind.TYPE_INT) {
+        if(currentKind == Kind.DIGIT) {
             parseIntExpr(exprNode);
-        } else if (currentKind == Kind.TYPE_STRING) {
+        } else if (currentKind == Kind.QUOTE) {
             parseStringExpr(exprNode);
-        } else if (currentKind == Kind.TYPE_BOOLEAN) {
+        } else if (currentKind == Kind.OPEN_PAREN ||
+                    currentKind == Kind.FALSE ||
+                    currentKind == Kind.TRUE) {
             parseBooleanExpr(exprNode);
         } else if (currentKind == Kind.ID) {
             parseId(exprNode);
         } else {
-            this.log("ERROR", "Expected Expr [TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, ID] , found " + currentKind + " with value [ " + currentValue + " ]");
+            this.log("ERROR", "Expected Expr [TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, FALSE, TRUE, ID] , found " + currentKind + " with value [ " + currentValue + " ]");
         }
     }
 
@@ -404,6 +406,7 @@ public class Parser extends Component {
     /**
      * CharList ::== char CharList
      *          ::== space CharList
+     *          ::== epsilon (empty) production
      */
     private void parseCharList(Node parent) {
         // log debug message
@@ -423,6 +426,7 @@ public class Parser extends Component {
             } else {
                 parseChar(charListNode);
             }
+            parseCharList(charListNode);
         } else {
             // do nothing, epsilon (empty) production
         }
@@ -505,8 +509,7 @@ public class Parser extends Component {
     }
 
     /**
-     * space ::== ' '
-     *            (space character)
+     * space ::== ' ' (space character)
      */
     private void parseSpace(Node parent) {
         // log debug message

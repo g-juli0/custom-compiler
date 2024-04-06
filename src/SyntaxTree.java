@@ -75,4 +75,12 @@ public class SyntaxTree {
         }
         return cst;
     }
+
+    /**
+     * toString function, calls depth first traversal function starting at root
+     * @return
+     */
+    public String toString() {
+        return depthFirstTraversal(root);
+    }
 }

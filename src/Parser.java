@@ -642,7 +642,7 @@ public class Parser extends Component {
      */
     private void printCST() {
         // print concrete syntax tree
-        System.out.println(this.CST.depthFirstTraversal(this.CST.getRoot()));
+        System.out.println(this.CST.toString());
     }
 
     /**

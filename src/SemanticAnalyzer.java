@@ -10,10 +10,12 @@ public class SemanticAnalyzer extends Component {
 
     private ArrayList<Token> tokenStream;
     private SyntaxTree AST;
+    private int scope;
 
     /**
      * constructor for semantic analyzer component. pseudo "parses" token stream again,
-     *      only adding minimally necessary Tokens to the AST and building a symbol table
+     *      only adding minimally necessary Tokens to the AST
+     * builds a symbol table, scope checks and type checks
      * @param stream ArrayList of Tokens recognized by the lexer
      * @param programNo program number for debug printing
      */
@@ -23,14 +25,16 @@ public class SemanticAnalyzer extends Component {
 
         warningCount = 0;
         errorCount = 0;
+        scope = 0;
 
         this.log("INFO", "Semantically analyzing program " + Integer.toString(programNo) + "...");
 
         // entry point for pseudo parse
+        //firstimportanttoken()
 
         if(this.success()) {
             this.log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
-            this.printAST();
+            //this.printAST();
         } else {
             this.log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         }
@@ -48,7 +52,7 @@ public class SemanticAnalyzer extends Component {
      */
     public void printAST() {
         // print AST
-        System.out.println(this.AST.depthFirstTraversal(this.AST.getRoot()));
+        System.out.println(this.AST.toString());
     }
 
     /**

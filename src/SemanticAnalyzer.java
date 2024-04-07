@@ -34,7 +34,7 @@ public class SemanticAnalyzer extends Component {
 
         if(this.success()) {
             this.log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
-            this.printAST();
+            this.printAST(programNo);
         } else {
             this.log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         }
@@ -510,8 +510,10 @@ public class SemanticAnalyzer extends Component {
     /**
      * prints formatted abstract syntax tree
      */
-    public void printAST() {
+    public void printAST(int programNo) {
         // print AST
+        System.out.println("Program " + programNo + " Abstract Syntax Tree");
+        System.out.println("----------------------------------------------");
         System.out.println(this.AST.toString());
     }
 

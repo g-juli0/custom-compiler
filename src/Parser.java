@@ -31,7 +31,7 @@ public class Parser extends Component {
         // print success or failure message, as well as CST on success
         if(this.success()) {
             this.log("INFO", "Parse completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
-            this.printCST();
+            this.printCST(programNo);
         } else {
             this.log("ERROR", "Parse failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         }
@@ -640,8 +640,10 @@ public class Parser extends Component {
     /**
      * prints formatted concrete syntax tree
      */
-    private void printCST() {
+    private void printCST(int programNo) {
         // print concrete syntax tree
+        System.out.println("Program " + programNo + " Concrete Syntax Tree");
+        System.out.println("----------------------------------------------");
         System.out.println(this.CST.toString());
     }
 

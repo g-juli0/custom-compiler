@@ -67,7 +67,7 @@ public class Compiler {
     public static ArrayList<String> readFile(String fileName) throws FileNotFoundException {
 
         // initialize empty list for programs
-        ArrayList<String> programs = new ArrayList<String>();
+        ArrayList<String> programs = new ArrayList<>();
 
         // initialize Scanner object to read from file specified
         Scanner inFile = new Scanner(new File(fileName));

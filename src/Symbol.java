@@ -11,6 +11,14 @@ public class Symbol {
     private boolean isInit;
     private boolean isUsed;
  
+    /**
+     * constructor for Symbol object
+     * @param name name or id of variable
+     * @param type type of variable (int, string, boolean)
+     * @param scope scope in which variable was declared
+     * @param isInit true if variable was initialized
+     * @param isUsed true if variable is used in code
+     */
     public Symbol(String name, String type, int scope, boolean isInit, boolean isUsed) {
         this.name = name;
         this.type = type;
@@ -19,31 +27,57 @@ public class Symbol {
         this.isUsed = isUsed;
     }
 
+    /**
+     * getter for Symbol name
+     * @return name or id of variable
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * getter for Symbol type
+     * @return type of variable (int, string, boolean)
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * getter for Symbol scope
+     * @return scope in which variable was declared
+     */
     public int getScope() {
         return scope;
     }
 
+    /**
+     * getter for Symbol isInit
+     * @return true if variable was initialized
+     */
     public boolean getIsInit() {
         return isInit;
     }
 
-    public void setIsInit(boolean init) {
-        isInit = init;
-    }
-
+    /**
+     * getter for Symbol isUsed
+     * @return true if variable is used in code
+     */
     public boolean getIsUsed() {
         return isUsed;
     }
 
-    public void setIsUsed(boolean used) {
-        isUsed = used;
+    /**
+     * sets isInit value to true
+     */
+    public void initialized() {
+        isInit = true;
+    }
+
+    /**
+     * sets isUsed to true
+     */
+    public void used() {
+        isUsed = true;
     }
 }

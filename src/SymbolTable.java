@@ -9,7 +9,7 @@ public class SymbolTable {
     private ArrayList<Symbol> symbols;
 
     public SymbolTable() {
-        symbols = new ArrayList<Symbol>();
+        symbols = new ArrayList<>();
     }
 
     public void addSymbol(Symbol s) {

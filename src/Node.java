@@ -14,7 +14,7 @@ public class Node {
      * @param v value of Node
      */
     public Node(String v) {
-        this.children = new ArrayList<Node>();
+        this.children = new ArrayList<>();
         this.value = v;
     }
 
@@ -24,7 +24,7 @@ public class Node {
      * @param v value of Node
      */
     public Node(String v, Node p) {
-        this.children = new ArrayList<Node>();
+        this.children = new ArrayList<>();
         this.value = v;
         this.parent = p;
     }

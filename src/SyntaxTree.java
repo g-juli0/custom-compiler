@@ -40,40 +40,40 @@ public class SyntaxTree {
      * @return
      */
     public String dashes(int depth) {
-        String dashes = "";
+        StringBuilder dashes = new StringBuilder();
 
         // add a dash to output string for how "deep" the Node is in the CST
         for(int i = 0; i < depth; i++) {
-            dashes += "-";
+            dashes.append("-");
         }
-        return dashes;
+        return dashes.toString();
     }
 
     /**
      * performs a depth first traversal of the CST and constructs
      *      a formatted output string of the CST 
-     * @param start
-     * @return
+     * @param start Node to start traversal at, enables recursion
+     * @return formatted String of Tree for output
      */
     public String depthFirstTraversal(Node start) {
-        String cst = "";
+        StringBuilder cst = new StringBuilder();
 
         // formatting and adding "name" of Node to output string
-        cst += dashes(getDepth(start));
+        cst.append(dashes(getDepth(start)));
         String val = start.getValue();
         if(val.length() == 1) {
-            cst += "[" + val + "]\n";
+            cst.append("[" + val + "]\n");
         } else {
-            cst += "<" + val + ">\n";
+            cst.append("<" + val + ">\n");
         }
         
         // if the node has children, perform a depth first traversal on each child
         if(start.hasChildren()) {
             for(Node child : start.getChildren()) {
-                cst += depthFirstTraversal(child);
+                cst.append(depthFirstTraversal(child));
             }
         }
-        return cst;
+        return cst.toString();
     }
 
     /**

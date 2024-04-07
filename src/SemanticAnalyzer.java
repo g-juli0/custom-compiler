@@ -11,6 +11,8 @@ public class SemanticAnalyzer extends Component {
     private ArrayList<Token> tokenStream;
     private SyntaxTree AST;
     private SymbolTable table;
+
+    private SyntaxTree scopeTree;
     private int scope;
 
     /**
@@ -28,7 +30,10 @@ public class SemanticAnalyzer extends Component {
 
         warningCount = 0;
         errorCount = 0;
+
         scope = 0;
+        scopeTree = new SyntaxTree(new Node(Integer.toString(scope)));
+        
 
         log("INFO", "Semantically analyzing program " + Integer.toString(programNo) + "...");
 
@@ -38,6 +43,7 @@ public class SemanticAnalyzer extends Component {
         if(success()) {
             log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             printAST(programNo);
+            populateSymbolTable(AST.getRoot(), scopeTree.getRoot());
             printSymbolTable(programNo);
         } else {
             log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
@@ -93,7 +99,6 @@ public class SemanticAnalyzer extends Component {
             Node blockNode = new Node("Block", parent);
             parent.addChild(blockNode);
             statementList(blockNode);
-            scope++;
         }
 
         match("}");
@@ -191,7 +196,7 @@ public class SemanticAnalyzer extends Component {
         Node assignStatementNode = new Node("AssignmentStatement", parent);
         parent.addChild(assignStatementNode);
 
-        String id = id(assignStatementNode);
+        id(assignStatementNode);
 
         match("=");
 
@@ -209,10 +214,8 @@ public class SemanticAnalyzer extends Component {
         Node varDeclNode = new Node("VarDecl", parent);
         parent.addChild(varDeclNode);
         
-        String type = type(varDeclNode);
-        String id = id(varDeclNode);
-        
-        //table.addSymbol(new Symbol(id, type, scope, false, false));
+        type(varDeclNode);
+        id(varDeclNode);
     }
 
     /**
@@ -349,8 +352,8 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private String id(Node parent) {
-        return character(parent);
+    private void id(Node parent) {
+        character(parent);
     }
 
     /**
@@ -361,44 +364,39 @@ public class SemanticAnalyzer extends Component {
      * convert CharList to a single string for AST Node
      */
     private void charList(Node parent) {
-        String strBuilder = "";
+        StringBuilder strBuilder = new StringBuilder();
 
         // peek at current Token for Kind and Value checking
         Token current = peek();
 
         while(current.getKind() == Kind.CHAR) {
-            strBuilder += current.getValue();
+            strBuilder.append(current.getValue());
 
             pop();
             current = peek();
         }
 
         // create new Node and add it to tree
-        Node charListNode = new Node(strBuilder, parent);
+        Node charListNode = new Node(strBuilder.toString(), parent);
         parent.addChild(charListNode);
     }
 
     /**
      * type ::== int | string | boolean
      */
-    private String type(Node parent) {
+    private void type(Node parent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TYPE_INT) {
             match("int");
             parent.addChild(new Node("int", parent));
-            return "int";
         } else if (currentKind == Kind.TYPE_STRING) {
             match("string");
             parent.addChild(new Node("string", parent));
-            return "string";
         } else if (currentKind == Kind.TYPE_BOOLEAN) {
             match("boolean");
             parent.addChild(new Node("boolean", parent));
-            return "boolean";
-        } else {
-            return "null";
         }
     }
     
@@ -515,9 +513,30 @@ public class SemanticAnalyzer extends Component {
 
     /**
      * performs depth-first in-order traversal of AST and populates the SymbolTable
+     * @param start Node to start traversal at, enables recursion
      */
-    private void populateSymbolTable() {
+    private String populateSymbolTable(Node start, Node currentScope) {
 
+        String val = start.getValue();
+
+        // base case: terminal Node returns its value
+        if(!start.hasChildren()) {
+            return val;
+        } else { /*
+
+            // increase scope
+            scope++;
+            Node newScope = new Node(Integer.toString(scope), currentScope)
+            currentScope.addChild(newScope);
+            currentScope = newScope;
+
+            ArrayList<String> terminals = new ArrayList<String>();
+            for(Node child : start.getChildren()) {
+                String terminal = populateSymbolTable(child, currentScope);
+                terminals.add(terminal);
+            } */
+        }
+        return null;
     }
 
     /**

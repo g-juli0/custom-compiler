@@ -10,6 +10,7 @@ public class SemanticAnalyzer extends Component {
 
     private ArrayList<Token> tokenStream;
     private SyntaxTree AST;
+    private SymbolTable table;
     private int scope;
 
     /**
@@ -21,22 +22,23 @@ public class SemanticAnalyzer extends Component {
      */
     public SemanticAnalyzer(ArrayList<Token> stream, int programNo) {
         // initialize flags and variables
-        this.tokenStream = stream;
+        tokenStream = stream;
 
         warningCount = 0;
         errorCount = 0;
         scope = 0;
 
-        this.log("INFO", "Semantically analyzing program " + Integer.toString(programNo) + "...");
+        log("INFO", "Semantically analyzing program " + Integer.toString(programNo) + "...");
 
         // entry point for pseudo parse
         block(null);
 
-        if(this.success()) {
-            this.log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
-            this.printAST(programNo);
+        if(success()) {
+            log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
+            printAST(programNo);
+            //printSymbolTable(programNo);
         } else {
-            this.log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
+            log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         }
     }
 
@@ -45,7 +47,7 @@ public class SemanticAnalyzer extends Component {
      * @return next Token
      */
     private Token pop() {
-        return this.tokenStream.remove(0);
+        return tokenStream.remove(0);
     }
 
     /**
@@ -53,7 +55,7 @@ public class SemanticAnalyzer extends Component {
      * @return next Token
      */
     private Token peek() {
-        return this.tokenStream.get(0);
+        return tokenStream.get(0);
     }
 
     /**
@@ -62,11 +64,11 @@ public class SemanticAnalyzer extends Component {
      */
     private void match(String expectedValue) {
         // since parse step has already passed successfully, no need for error checking here
-        Token currentToken = this.peek();
+        Token currentToken = peek();
         // if current Token value equals expected value
         if(currentToken.getValue().equals(expectedValue)) {
             // remove Token and continue
-            this.pop();
+            pop();
         }
     }
 
@@ -75,7 +77,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void block(Node parent) {
         // log debug message
-        this.log("DEBUG", "Block");
+        log("DEBUG", "Block");
 
         match("{");
 
@@ -83,7 +85,7 @@ public class SemanticAnalyzer extends Component {
         if(parent == null) {
             // create new root for AST
             Node root = new Node("Block");
-            this.AST = new SyntaxTree(root);
+            AST = new SyntaxTree(root);
             statementList(root);
         } else {
             Node blockNode = new Node("Block", parent);
@@ -104,7 +106,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void statementList(Node parent) {
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         // if the expected Kind of Token is in the first set for a Statement
         if(currentKind == Kind.PRINT || 
@@ -132,7 +134,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void statement(Node parent) {
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
         
         // PrintStatement
         if(currentKind == Kind.PRINT) {
@@ -162,7 +164,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void printStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "PrintStatement");
+        log("DEBUG", "PrintStatement");
 
         // create new Node and add it to tree
         Node printStatementNode = new Node("PrintStatement", parent);
@@ -181,7 +183,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void assignmentStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "AssignmentStatement");
+        log("DEBUG", "AssignmentStatement");
 
         // create new Node and add it to tree
         Node assignStatementNode = new Node("AssignmentStatement", parent);
@@ -199,7 +201,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void varDecl(Node parent) {
         // log debug message
-        this.log("DEBUG", "VarDecl");
+        log("DEBUG", "VarDecl");
 
         // create new Node and add it to tree
         Node varDeclNode = new Node("VarDecl", parent);
@@ -214,7 +216,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void whileStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "WhileStatement");
+        log("DEBUG", "WhileStatement");
 
         // create new Node and add it to tree
         Node whileStatementNode = new Node("WhileStatement", parent);
@@ -231,7 +233,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void ifStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "IfStatement");
+        log("DEBUG", "IfStatement");
 
         // create new Node and add it to tree
         Node ifStatementNode = new Node("IfStatement", parent);
@@ -253,7 +255,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void expr(Node parent) {
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.DIGIT) {
             intExpr(parent);
@@ -274,7 +276,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void intExpr(Node parent) {
         // log debug message
-        this.log("DEBUG", "IntExpr");
+        log("DEBUG", "IntExpr");
 
         // create new Node and add it to tree
         Node intExprNode = new Node("IntExpr", parent);
@@ -284,7 +286,7 @@ public class SemanticAnalyzer extends Component {
         digit(intExprNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.ADD_OP) {
             intOp(intExprNode);
@@ -297,7 +299,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void stringExpr(Node parent) {
         // log debug message
-        this.log("DEBUG", "StringExpr");
+        log("DEBUG", "StringExpr");
 
         // create new Node and add it to tree
         Node stringExprNode = new Node("StringExpr", parent);
@@ -316,14 +318,14 @@ public class SemanticAnalyzer extends Component {
      */
     private void booleanExpr(Node parent) {
         // log debug message
-        this.log("DEBUG", "BooleanExpr");
+        log("DEBUG", "BooleanExpr");
 
         // create new Node and add it to tree
         Node booleanExprNode = new Node("BooleanExpr", parent);
         parent.addChild(booleanExprNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TRUE || currentKind == Kind.FALSE) {
             boolVal(booleanExprNode);
@@ -358,13 +360,13 @@ public class SemanticAnalyzer extends Component {
         String strBuilder = "";
 
         // peek at current Token for Kind and Value checking
-        Token current = this.peek();
+        Token current = peek();
 
         while(current.getKind() == Kind.CHAR) {
             strBuilder += current.getValue();
 
-            this.pop();
-            current = this.peek();
+            pop();
+            current = peek();
         }
 
         // create new Node and add it to tree
@@ -377,7 +379,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void type(Node parent) {
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TYPE_INT) {
             match("int");
@@ -396,7 +398,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void character(Node parent) {
         // peek at current Token for Value checking
-        String currentValue = this.peek().getValue();
+        String currentValue = peek().getValue();
 
         String expectedLetter = "";
 
@@ -427,7 +429,7 @@ public class SemanticAnalyzer extends Component {
             case "x": expectedLetter = "x"; break;
             case "y": expectedLetter = "y"; break;
             case "z": expectedLetter = "z"; break;
-            default: this.log("ERROR", "Expected char [a-z] , found [ " + currentValue + " ]"); break;
+            default: log("ERROR", "Expected char [a-z] , found [ " + currentValue + " ]"); break;
         }
 
         match(expectedLetter);
@@ -439,7 +441,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void digit(Node parent) {
         // peek at current Token for Value checking
-        String currentValue = this.peek().getValue();
+        String currentValue = peek().getValue();
 
         String expectedDigit = "";
 
@@ -454,7 +456,7 @@ public class SemanticAnalyzer extends Component {
             case "7": expectedDigit = "7"; break;
             case "8": expectedDigit = "8"; break;
             case "9": expectedDigit = "9"; break;
-            default: this.log("ERROR", "Expected digit [0-9] , found [ " + currentValue + " ]"); break;
+            default: log("ERROR", "Expected digit [0-9] , found [ " + currentValue + " ]"); break;
         }
 
         match(expectedDigit);
@@ -466,7 +468,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void boolOp(Node parent) {
         // peek at current Token for Value checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.EQUALITY_OP) {
             match("==");
@@ -482,7 +484,7 @@ public class SemanticAnalyzer extends Component {
      */
     private void boolVal(Node parent) {
         // peek at current Token for Value checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TRUE) {
             match("true");
@@ -503,8 +505,10 @@ public class SemanticAnalyzer extends Component {
     /**
      * prints formatted symbol table
      */
-    public void printSymbolTable() {
+    public void printSymbolTable(int programNo) {
         // print symbol table
+        System.out.println("Program " + programNo + " Symbol Table");
+        System.out.println(table.toString());
     }
 
     /**
@@ -513,8 +517,8 @@ public class SemanticAnalyzer extends Component {
     public void printAST(int programNo) {
         // print AST
         System.out.println("Program " + programNo + " Abstract Syntax Tree");
-        System.out.println("----------------------------------------------");
-        System.out.println(this.AST.toString());
+        System.out.println("------------------------------------");
+        System.out.println(AST.toString());
     }
 
     /**

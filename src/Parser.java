@@ -18,22 +18,22 @@ public class Parser extends Component {
      */
     public Parser(ArrayList<Token> stream, int programNo) {
         // initialize flags and variables
-        this.tokenStream = stream;
+        tokenStream = stream;
 
         warningCount = 0;
         errorCount = 0;
 
-        this.log("INFO", "Parsing program " + Integer.toString(programNo) + "...");
+        log("INFO", "Parsing program " + Integer.toString(programNo) + "...");
 
         // entry point for recursive descent parsing
         parse();
 
         // print success or failure message, as well as CST on success
-        if(this.success()) {
-            this.log("INFO", "Parse completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
-            this.printCST(programNo);
+        if(success()) {
+            log("INFO", "Parse completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
+            printCST(programNo);
         } else {
-            this.log("ERROR", "Parse failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
+            log("ERROR", "Parse failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         }
     }
 
@@ -42,7 +42,7 @@ public class Parser extends Component {
      * @return next Token
      */
     private Token pop() {
-        return this.tokenStream.remove(0);
+        return tokenStream.remove(0);
     }
 
     /**
@@ -50,7 +50,7 @@ public class Parser extends Component {
      * @return next Token
      */
     private Token peek() {
-        return this.tokenStream.get(0);
+        return tokenStream.get(0);
     }
 
     /**
@@ -60,17 +60,17 @@ public class Parser extends Component {
     private void match(String expectedValue) {
         // if end of stream reached, error
         if(tokenStream.isEmpty()) {
-            this.log("ERROR", "Expected [ " + expectedValue + " ], found end of stream.");
+            log("ERROR", "Expected [ " + expectedValue + " ], found end of stream.");
             errorCount++;
         } else {
-            Token currentToken = this.peek();
+            Token currentToken = peek();
             // if current Token value equals expected value
             if(currentToken.getValue().equals(expectedValue)) {
                 // remove Token and continue
-                this.pop();
+                pop();
                 // VALID EXPECTED MSG
             } else {
-                this.log("ERROR", "Expected [ " + expectedValue + " ], found [ " + currentToken.getValue() + " ]");
+                log("ERROR", "Expected [ " + expectedValue + " ], found [ " + currentToken.getValue() + " ]");
                 errorCount++;
             }
         }
@@ -80,7 +80,7 @@ public class Parser extends Component {
      * entry point for recursive descent parsing
      */
     private void parse() {
-        this.log("DEBUG", "parse()");
+        log("DEBUG", "parse()");
         parseProgram();
     }
 
@@ -89,11 +89,11 @@ public class Parser extends Component {
      */
     private void parseProgram() {
         // log debug message
-        this.log("DEBUG", "parseProgram()");
+        log("DEBUG", "parseProgram()");
 
         // create new Node and add it to tree
         Node root = new Node("Program");
-        this.CST = new SyntaxTree(root);
+        CST = new SyntaxTree(root);
 
         // parse Block
         parseBlock(root);
@@ -108,7 +108,7 @@ public class Parser extends Component {
      */
     private void parseBlock(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseBlock()");
+        log("DEBUG", "parseBlock()");
 
         // create new Node and add it to tree
         Node blockNode = new Node("Block", parent);
@@ -132,14 +132,14 @@ public class Parser extends Component {
      */
     private void parseStatementList(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseStatementList()");
+        log("DEBUG", "parseStatementList()");
 
         // create new Node and add it to tree
         Node statementListNode = new Node("StatementList", parent);
         parent.addChild(statementListNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         // if the expected Kind of Token is in the first set for a Statement
         if(currentKind == Kind.PRINT || 
@@ -167,15 +167,15 @@ public class Parser extends Component {
      */
     private void parseStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseStatement()");
+        log("DEBUG", "parseStatement()");
 
         // create new Node and add it to tree
         Node statementNode = new Node("Statement", parent);
         parent.addChild(statementNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
-        String currentValue = this.peek().getValue();
+        Kind currentKind = peek().getKind();
+        String currentValue = peek().getValue();
         
         // PrintStatement
         if(currentKind == Kind.PRINT) {
@@ -199,7 +199,7 @@ public class Parser extends Component {
             parseBlock(statementNode);
         // error - unexpected token
         } else {
-            this.log("ERROR", "Expected Statement [PRINT, ID, TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, WHILE, IF, OPEN_BLOCK] , found " + currentKind + " with value [ " + currentValue + " ]");
+            log("ERROR", "Expected Statement [PRINT, ID, TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, WHILE, IF, OPEN_BLOCK] , found " + currentKind + " with value [ " + currentValue + " ]");
         }
     }
 
@@ -208,7 +208,7 @@ public class Parser extends Component {
      */
     private void parsePrintStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "parsePrintStatement()");
+        log("DEBUG", "parsePrintStatement()");
 
         // create new Node and add it to tree
         Node printStatementNode = new Node("PrintStatement", parent);
@@ -231,7 +231,7 @@ public class Parser extends Component {
      */
     private void parseAssignmentStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseAssignmentStatement()");
+        log("DEBUG", "parseAssignmentStatement()");
 
         // create new Node and add it to tree
         Node assignStatementNode = new Node("AssignmentStatement", parent);
@@ -250,7 +250,7 @@ public class Parser extends Component {
      */
     private void parseVarDecl(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseVarDecl()");
+        log("DEBUG", "parseVarDecl()");
 
         // create new Node and add it to tree
         Node varDeclNode = new Node("VarDecl", parent);
@@ -265,7 +265,7 @@ public class Parser extends Component {
      */
     private void parseWhileStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseWhileStatement()");
+        log("DEBUG", "parseWhileStatement()");
 
         // create new Node and add it to tree
         Node whileStatementNode = new Node("WhileStatement", parent);
@@ -283,7 +283,7 @@ public class Parser extends Component {
      */
     private void parseIfStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseIfStatement()");
+        log("DEBUG", "parseIfStatement()");
 
         // create new Node and add it to tree
         Node ifStatementNode = new Node("IfStatement", parent);
@@ -304,15 +304,15 @@ public class Parser extends Component {
      */
     private void parseExpr(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseExpr()");
+        log("DEBUG", "parseExpr()");
 
         // create new Node and add it to tree
         Node exprNode = new Node("Expr", parent);
         parent.addChild(exprNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
-        String currentValue = this.peek().getValue();
+        Kind currentKind = peek().getKind();
+        String currentValue = peek().getValue();
 
         if(currentKind == Kind.DIGIT) {
             parseIntExpr(exprNode);
@@ -325,7 +325,7 @@ public class Parser extends Component {
         } else if (currentKind == Kind.ID) {
             parseId(exprNode);
         } else {
-            this.log("ERROR", "Expected Expr [TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, FALSE, TRUE, ID] , found " + currentKind + " with value [ " + currentValue + " ]");
+            log("ERROR", "Expected Expr [TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, FALSE, TRUE, ID] , found " + currentKind + " with value [ " + currentValue + " ]");
         }
     }
 
@@ -335,7 +335,7 @@ public class Parser extends Component {
      */
     private void parseIntExpr(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseIntExpr()");
+        log("DEBUG", "parseIntExpr()");
 
         // create new Node and add it to tree
         Node intExprNode = new Node("IntExpr", parent);
@@ -345,7 +345,7 @@ public class Parser extends Component {
         parseDigit(intExprNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.ADD_OP) {
             parseIntOp(intExprNode);
@@ -358,7 +358,7 @@ public class Parser extends Component {
      */
     private void parseStringExpr(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseStringExpr()");
+        log("DEBUG", "parseStringExpr()");
 
         // create new Node and add it to tree
         Node stringExprNode = new Node("StringExpr", parent);
@@ -379,14 +379,14 @@ public class Parser extends Component {
      */
     private void parseBooleanExpr(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseBooleanExpr()");
+        log("DEBUG", "parseBooleanExpr()");
 
         // create new Node and add it to tree
         Node booleanExprNode = new Node("BooleanExpr", parent);
         parent.addChild(booleanExprNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TRUE || currentKind == Kind.FALSE) {
             parseBoolVal(booleanExprNode);
@@ -408,7 +408,7 @@ public class Parser extends Component {
      */
     private void parseId(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseId()");
+        log("DEBUG", "parseId()");
 
         // create new Node and add it to tree
         Node idNode = new Node("Id", parent);
@@ -424,15 +424,15 @@ public class Parser extends Component {
      */
     private void parseCharList(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseCharList()");
+        log("DEBUG", "parseCharList()");
 
         // create new Node and add it to tree
         Node charListNode = new Node("CharList", parent);
         parent.addChild(charListNode);
 
         // peek at current Token for Kind and Value checking
-        Kind currentKind = this.peek().getKind();
-        String currentValue = this.peek().getValue();
+        Kind currentKind = peek().getKind();
+        String currentValue = peek().getValue();
 
         if(currentKind == Kind.CHAR) {
             if(currentValue.equals(" ")) {
@@ -451,14 +451,14 @@ public class Parser extends Component {
      */
     private void parseType(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseType()");
+        log("DEBUG", "parseType()");
 
         // create new Node and add it to tree
         Node typeNode = new Node("type", parent);
         parent.addChild(typeNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TYPE_INT) {
             match("int");
@@ -477,14 +477,14 @@ public class Parser extends Component {
      */
     private void parseChar(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseChar()");
+        log("DEBUG", "parseChar()");
 
         // create new Node and add it to tree
         Node charNode = new Node("char", parent);
         parent.addChild(charNode);
 
         // peek at current Token for Value checking
-        String currentValue = this.peek().getValue();
+        String currentValue = peek().getValue();
 
         String expectedLetter = "";
 
@@ -515,7 +515,7 @@ public class Parser extends Component {
             case "x": expectedLetter = "x"; break;
             case "y": expectedLetter = "y"; break;
             case "z": expectedLetter = "z"; break;
-            default: this.log("ERROR", "Expected char [a-z] , found [ " + currentValue + " ]"); break;
+            default: log("ERROR", "Expected char [a-z] , found [ " + currentValue + " ]"); break;
         }
 
         match(expectedLetter);
@@ -527,7 +527,7 @@ public class Parser extends Component {
      */
     private void parseSpace(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseSpace()");
+        log("DEBUG", "parseSpace()");
 
         // create new Node and add it to tree
         Node spaceNode = new Node("space", parent);
@@ -542,14 +542,14 @@ public class Parser extends Component {
      */
     private void parseDigit(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseDigit()");
+        log("DEBUG", "parseDigit()");
 
         // create new Node and add it to tree
         Node digitNode = new Node("digit", parent);
         parent.addChild(digitNode);
 
         // peek at current Token for Value checking
-        String currentValue = this.peek().getValue();
+        String currentValue = peek().getValue();
 
         String expectedDigit = "";
 
@@ -564,7 +564,7 @@ public class Parser extends Component {
             case "7": expectedDigit = "7"; break;
             case "8": expectedDigit = "8"; break;
             case "9": expectedDigit = "9"; break;
-            default: this.log("ERROR", "Expected digit [0-9] , found [ " + currentValue + " ]"); break;
+            default: log("ERROR", "Expected digit [0-9] , found [ " + currentValue + " ]"); break;
         }
 
         match(expectedDigit);
@@ -576,15 +576,15 @@ public class Parser extends Component {
      */
     private void parseBoolOp(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseBoolOp()");
+        log("DEBUG", "parseBoolOp()");
 
         // create new Node and add it to tree
         Node boolOpNode = new Node("boolop", parent);
         parent.addChild(boolOpNode);
 
         // peek at current Token for Value checking
-        Kind currentKind = this.peek().getKind();
-        String currentValue = this.peek().getValue();
+        Kind currentKind = peek().getKind();
+        String currentValue = peek().getValue();
 
         if(currentKind == Kind.EQUALITY_OP) {
             match("==");
@@ -593,7 +593,7 @@ public class Parser extends Component {
             match("!=");
             boolOpNode.addChild(new Node("!=", boolOpNode));
         } else {
-            this.log("ERROR", "Expected boolop [==, !=] , found [ " + currentValue + " ]");
+            log("ERROR", "Expected boolop [==, !=] , found [ " + currentValue + " ]");
         }
     }
 
@@ -602,14 +602,14 @@ public class Parser extends Component {
      */
     private void parseBoolVal(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseBoolVal()");
+        log("DEBUG", "parseBoolVal()");
 
         // create new Node and add it to tree
         Node boolValNode = new Node("boolval", parent);
         parent.addChild(boolValNode);
 
         // peek at current Token for Value checking
-        Kind currentKind = this.peek().getKind();
+        Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TRUE) {
             match("true");
@@ -618,7 +618,7 @@ public class Parser extends Component {
             match("false");
             boolValNode.addChild(new Node("false", boolValNode));
         } else {
-            this.log("ERROR", "Expected boolval [true, false] , found [ " + currentKind + " ]");
+            log("ERROR", "Expected boolval [true, false] , found [ " + currentKind + " ]");
         }
     }
 
@@ -627,7 +627,7 @@ public class Parser extends Component {
      */
     private void parseIntOp(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseIntOp()");
+        log("DEBUG", "parseIntOp()");
 
         // create new Node and add it to tree
         Node intOpNode = new Node("intop", parent);
@@ -643,8 +643,8 @@ public class Parser extends Component {
     private void printCST(int programNo) {
         // print concrete syntax tree
         System.out.println("Program " + programNo + " Concrete Syntax Tree");
-        System.out.println("----------------------------------------------");
-        System.out.println(this.CST.toString());
+        System.out.println("------------------------------------");
+        System.out.println(CST.toString());
     }
 
     /**

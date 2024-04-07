@@ -159,7 +159,7 @@ public class Parser extends Component {
 
     /**
      * Statement ::== PrintStatement
-     *           ::== AssignStatement
+     *           ::== AssignmentStatement
      *           ::== VarDecl
      *           ::== WhileStatement
      *           ::== IfStatement
@@ -180,7 +180,7 @@ public class Parser extends Component {
         // PrintStatement
         if(currentKind == Kind.PRINT) {
             parsePrintStatement(statementNode);
-        // AssignStatement
+        // AssignmentStatement
         } else if (currentKind == Kind.ID) {
             parseAssignmentStatement(statementNode);
         // VarDecl
@@ -218,12 +218,12 @@ public class Parser extends Component {
         printStatementNode.addChild(new Node("print", printStatementNode));
         
         match("(");
-        printStatementNode.addChild(new Node("{", printStatementNode));
+        printStatementNode.addChild(new Node("(", printStatementNode));
 
         parseExpr(printStatementNode);
 
         match(")");
-        printStatementNode.addChild(new Node("}", printStatementNode));
+        printStatementNode.addChild(new Node(")", printStatementNode));
     }
 
     /**
@@ -231,10 +231,10 @@ public class Parser extends Component {
      */
     private void parseAssignmentStatement(Node parent) {
         // log debug message
-        this.log("DEBUG", "parseAssignStatement()");
+        this.log("DEBUG", "parseAssignmentStatement()");
 
         // create new Node and add it to tree
-        Node assignStatementNode = new Node("AssignStatement", parent);
+        Node assignStatementNode = new Node("AssignmentStatement", parent);
         parent.addChild(assignStatementNode);
 
         parseId(assignStatementNode);

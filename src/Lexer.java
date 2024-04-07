@@ -239,11 +239,15 @@ public class Lexer extends Component {
     }
 
     /**
-     * returns tokenStream for use in parse phase
+     * returns a copy of the tokenStream for use in future compiler phases
      * @return ArrayList of Tokenized program
      */
     public ArrayList<Token> getTokenStream() {
-        return tokenStream;
+        ArrayList<Token> clonedList = new ArrayList<>(tokenStream.size());
+        for(Token t : tokenStream) {
+            clonedList.add(t);
+        }
+        return clonedList;
     }
 
     /**

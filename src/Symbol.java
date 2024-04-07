@@ -18,4 +18,32 @@ public class Symbol {
         this.isInit = isInit;
         this.isUsed = isUsed;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public int getScope() {
+        return scope;
+    }
+
+    public boolean getIsInit() {
+        return isInit;
+    }
+
+    public void setIsInit(boolean init) {
+        isInit = init;
+    }
+
+    public boolean getIsUsed() {
+        return isUsed;
+    }
+
+    public void setIsUsed(boolean used) {
+        isUsed = used;
+    }
 }

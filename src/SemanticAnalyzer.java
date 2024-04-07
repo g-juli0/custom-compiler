@@ -24,6 +24,8 @@ public class SemanticAnalyzer extends Component {
         // initialize flags and variables
         tokenStream = stream;
 
+        table = new SymbolTable();
+
         warningCount = 0;
         errorCount = 0;
         scope = 0;
@@ -36,7 +38,7 @@ public class SemanticAnalyzer extends Component {
         if(success()) {
             log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             printAST(programNo);
-            //printSymbolTable(programNo);
+            printSymbolTable(programNo);
         } else {
             log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
         }
@@ -189,7 +191,7 @@ public class SemanticAnalyzer extends Component {
         Node assignStatementNode = new Node("AssignmentStatement", parent);
         parent.addChild(assignStatementNode);
 
-        id(assignStatementNode);
+        String id = id(assignStatementNode);
 
         match("=");
 
@@ -207,8 +209,10 @@ public class SemanticAnalyzer extends Component {
         Node varDeclNode = new Node("VarDecl", parent);
         parent.addChild(varDeclNode);
         
-        type(varDeclNode);
-        id(varDeclNode);
+        String type = type(varDeclNode);
+        String id = id(varDeclNode);
+        
+        //table.addSymbol(new Symbol(id, type, scope, false, false));
     }
 
     /**
@@ -345,8 +349,8 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private void id(Node parent) {
-        character(parent);
+    private String id(Node parent) {
+        return character(parent);
     }
 
     /**
@@ -377,26 +381,31 @@ public class SemanticAnalyzer extends Component {
     /**
      * type ::== int | string | boolean
      */
-    private void type(Node parent) {
+    private String type(Node parent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TYPE_INT) {
             match("int");
             parent.addChild(new Node("int", parent));
+            return "int";
         } else if (currentKind == Kind.TYPE_STRING) {
             match("string");
             parent.addChild(new Node("string", parent));
+            return "string";
         } else if (currentKind == Kind.TYPE_BOOLEAN) {
             match("boolean");
             parent.addChild(new Node("boolean", parent));
+            return "boolean";
+        } else {
+            return "null";
         }
     }
     
     /**
      * char ::== a | b | c | ... | z
      */
-    private void character(Node parent) {
+    private String character(Node parent) {
         // peek at current Token for Value checking
         String currentValue = peek().getValue();
 
@@ -434,6 +443,7 @@ public class SemanticAnalyzer extends Component {
 
         match(expectedLetter);
         parent.addChild(new Node(expectedLetter, parent));
+        return expectedLetter;
     }
 
     /**
@@ -502,6 +512,14 @@ public class SemanticAnalyzer extends Component {
         match("+");
         parent.addChild(new Node("+", parent));
     }
+
+    /**
+     * performs depth-first in-order traversal of AST and populates the SymbolTable
+     */
+    private void populateSymbolTable() {
+
+    }
+
     /**
      * prints formatted symbol table
      */

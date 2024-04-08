@@ -15,7 +15,7 @@ public class SyntaxTree {
      * @return
      */
     public Node getRoot() {
-        return this.root;
+        return root;
     }
 
     /**

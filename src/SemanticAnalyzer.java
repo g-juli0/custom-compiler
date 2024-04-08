@@ -39,7 +39,7 @@ public class SemanticAnalyzer extends Component {
         if(success()) {
             log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             printAST(programNo);
-            populateSymbolTable(AST.getRoot(), table);
+            //populateSymbolTable(AST.getRoot(), table);
             printSymbolTable(programNo);
         } else {
             log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
@@ -280,20 +280,16 @@ public class SemanticAnalyzer extends Component {
     private void intExpr(Node parent) {
         // log debug message
         log("DEBUG", "IntExpr");
-
-        // create new Node and add it to tree
-        Node intExprNode = new Node("IntExpr", parent);
-        parent.addChild(intExprNode);
         
         // parse first digit, then get current Token after digit is matched
-        digit(intExprNode);
+        digit(parent);
 
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.ADD_OP) {
-            intOp(intExprNode);
-            expr(intExprNode);
+            intOp(parent);
+            expr(parent);
         }
     }
 
@@ -304,13 +300,9 @@ public class SemanticAnalyzer extends Component {
         // log debug message
         log("DEBUG", "StringExpr");
 
-        // create new Node and add it to tree
-        Node stringExprNode = new Node("StringExpr", parent);
-        parent.addChild(stringExprNode);
-
         match("\"");
 
-        charList(stringExprNode);
+        charList(parent);
 
         match("\"");
     }
@@ -323,21 +315,17 @@ public class SemanticAnalyzer extends Component {
         // log debug message
         log("DEBUG", "BooleanExpr");
 
-        // create new Node and add it to tree
-        Node booleanExprNode = new Node("BooleanExpr", parent);
-        parent.addChild(booleanExprNode);
-
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TRUE || currentKind == Kind.FALSE) {
-            boolVal(booleanExprNode);
+            boolVal(parent);
         } else {
             match("(");
 
-            expr(booleanExprNode);
-            boolOp(booleanExprNode);
-            expr(booleanExprNode);
+            expr(parent);
+            boolOp(parent);
+            expr(parent);
 
             match(")");
         }
@@ -515,74 +503,18 @@ public class SemanticAnalyzer extends Component {
      * performs depth-first in-order traversal of AST and populates the SymbolTable
      * @param start Node to start traversal at, enables recursion
      */
-    private String populateSymbolTable(Node start, SymbolTable currentScope) {
+    private void populateSymbolTable(Node start, SymbolTable currentScope) {
 
-        String val = start.getValue();
+        if(isTerminal(start.getValue())) {
+            String parent = start.getParent().getValue();
 
-        if(val.equals("Block")) {
-            // increase scope
-            scope++;
-            //SymbolTable newScope = new Node(scope, currentScope);
-            //currentScope.addChild(newScope);
-            //currentScope = newScope;
-
-            // traverse all children
-            for(Node child : start.getChildren()) {
-                populateSymbolTable(child, currentScope);
-            }
-        } else if(val.equals("PrintStatement")) {
-            // only 1 child
-            String id = populateSymbolTable(start.getChildren().get(0), currentScope);
-
-            // look up symbol in table and mark as used
-            Symbol s = table.lookup(id);
-            s.used();
-
-        } else if(val.equals("AssignmentStatement")) {
-            // 2 children
-            ArrayList<Node> children = start.getChildren();
-            String id = populateSymbolTable(children.get(0), currentScope);
-            String value = populateSymbolTable(children.get(1), currentScope);
-
-            Symbol s = table.lookup(id);
-            if(typeCheck(s, value)) {
-                s.initialized();
-            } else {
-                log("ERROR", "Symbol [ " + id + " ] not declared, cannot be assigned a value");
-                errorCount++;
-            }
-
-
-        } else if(val.equals("VarDecl")) {
-            ArrayList<Node> children = start.getChildren();
-            String type = populateSymbolTable(children.get(0), currentScope);
-            String id = populateSymbolTable(children.get(1), currentScope);
-
-            table.addSymbol(new Symbol(id, type, scope, false, false));
-        } else if(val.equals("WhileStatement")) {
-            // two children
-        } else if(val.equals("IfStatement")) {
-            // two children
-        } else if(val.equals("IntExpr")) {
-            // 1 or 3 children
-        } else if(val.equals("StringExpr")) {
-            // 1 child
-        } else if(val.equals("BooleanExpr")) {
-            // 1 or 3 children
-        } else if(isTerminal(val)) {
-            return val;
         }
 
-        // base case: terminal Node returns its value
-        if(!start.hasChildren()) {
-            return val;
-        } else { 
-            
+        if(start.hasChildren()) {
             for(Node child : start.getChildren()) {
                 populateSymbolTable(child, currentScope);
             }
         }
-        return null;
         
     }
 

@@ -12,7 +12,6 @@ public class SemanticAnalyzer extends Component {
     private SyntaxTree AST;
     private SymbolTable table;
 
-    private SyntaxTree scopeTree;
     private int scope;
 
     /**
@@ -26,14 +25,11 @@ public class SemanticAnalyzer extends Component {
         // initialize flags and variables
         tokenStream = stream;
 
-        table = new SymbolTable();
+        scope = 0;
+        table = new SymbolTable(scope);
 
         warningCount = 0;
         errorCount = 0;
-
-        scope = 0;
-        scopeTree = new SyntaxTree(new Node(Integer.toString(scope)));
-        
 
         log("INFO", "Semantically analyzing program " + Integer.toString(programNo) + "...");
 
@@ -43,7 +39,7 @@ public class SemanticAnalyzer extends Component {
         if(success()) {
             log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             printAST(programNo);
-            populateSymbolTable(AST.getRoot(), scopeTree.getRoot());
+            populateSymbolTable(AST.getRoot(), table);
             printSymbolTable(programNo);
         } else {
             log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
@@ -147,21 +143,21 @@ public class SemanticAnalyzer extends Component {
         if(currentKind == Kind.PRINT) {
             printStatement(parent);
         // AssignStatement
-        } else if (currentKind == Kind.ID) {
+        } else if(currentKind == Kind.ID) {
             assignmentStatement(parent);
         // VarDecl
-        } else if (currentKind == Kind.TYPE_INT || 
+        } else if(currentKind == Kind.TYPE_INT || 
                 currentKind == Kind.TYPE_STRING ||
                 currentKind == Kind.TYPE_BOOLEAN) {
             varDecl(parent);
         // WhileStatement
-        } else if (currentKind == Kind.WHILE) {
+        } else if(currentKind == Kind.WHILE) {
             whileStatement(parent);
         // IfStatement
-        } else if (currentKind == Kind.IF) {
+        } else if(currentKind == Kind.IF) {
             ifStatement(parent);
         // Block
-        } else if (currentKind == Kind.OPEN_BLOCK) {
+        } else if(currentKind == Kind.OPEN_BLOCK) {
             block(parent);
         }
     }
@@ -266,13 +262,13 @@ public class SemanticAnalyzer extends Component {
 
         if(currentKind == Kind.DIGIT) {
             intExpr(parent);
-        } else if (currentKind == Kind.QUOTE) {
+        } else if(currentKind == Kind.QUOTE) {
             stringExpr(parent);
-        } else if (currentKind == Kind.OPEN_PAREN ||
+        } else if(currentKind == Kind.OPEN_PAREN ||
                     currentKind == Kind.FALSE ||
                     currentKind == Kind.TRUE) {
             booleanExpr(parent);
-        } else if (currentKind == Kind.ID) {
+        } else if(currentKind == Kind.ID) {
             id(parent);
         }
     }
@@ -391,10 +387,10 @@ public class SemanticAnalyzer extends Component {
         if(currentKind == Kind.TYPE_INT) {
             match("int");
             parent.addChild(new Node("int", parent));
-        } else if (currentKind == Kind.TYPE_STRING) {
+        } else if(currentKind == Kind.TYPE_STRING) {
             match("string");
             parent.addChild(new Node("string", parent));
-        } else if (currentKind == Kind.TYPE_BOOLEAN) {
+        } else if(currentKind == Kind.TYPE_BOOLEAN) {
             match("boolean");
             parent.addChild(new Node("boolean", parent));
         }
@@ -481,7 +477,7 @@ public class SemanticAnalyzer extends Component {
         if(currentKind == Kind.EQUALITY_OP) {
             match("==");
             parent.addChild(new Node("==", parent));
-        } else if (currentKind == Kind.INEQUALITY_OP) {
+        } else if(currentKind == Kind.INEQUALITY_OP) {
             match("!=");
             parent.addChild(new Node("!=", parent));
         }
@@ -497,7 +493,7 @@ public class SemanticAnalyzer extends Component {
         if(currentKind == Kind.TRUE) {
             match("true");
             parent.addChild(new Node("true", parent));
-        } else if (currentKind == Kind.FALSE) {
+        } else if(currentKind == Kind.FALSE) {
             match("false");
             parent.addChild(new Node("false", parent));
         }
@@ -511,32 +507,83 @@ public class SemanticAnalyzer extends Component {
         parent.addChild(new Node("+", parent));
     }
 
+    private boolean typeCheck(Symbol s, String type) {
+        return false;
+    }
+
     /**
      * performs depth-first in-order traversal of AST and populates the SymbolTable
      * @param start Node to start traversal at, enables recursion
      */
-    private String populateSymbolTable(Node start, Node currentScope) {
+    private String populateSymbolTable(Node start, SymbolTable currentScope) {
 
         String val = start.getValue();
+
+        if(val.equals("Block")) {
+            // increase scope
+            scope++;
+            //SymbolTable newScope = new Node(scope, currentScope);
+            //currentScope.addChild(newScope);
+            //currentScope = newScope;
+
+            // traverse all children
+            for(Node child : start.getChildren()) {
+                populateSymbolTable(child, currentScope);
+            }
+        } else if(val.equals("PrintStatement")) {
+            // only 1 child
+            String id = populateSymbolTable(start.getChildren().get(0), currentScope);
+
+            // look up symbol in table and mark as used
+            Symbol s = table.lookup(id);
+            s.used();
+
+        } else if(val.equals("AssignmentStatement")) {
+            // 2 children
+            ArrayList<Node> children = start.getChildren();
+            String id = populateSymbolTable(children.get(0), currentScope);
+            String value = populateSymbolTable(children.get(1), currentScope);
+
+            Symbol s = table.lookup(id);
+            if(typeCheck(s, value)) {
+                s.initialized();
+            } else {
+                log("ERROR", "Symbol [ " + id + " ] not declared, cannot be assigned a value");
+                errorCount++;
+            }
+
+
+        } else if(val.equals("VarDecl")) {
+            ArrayList<Node> children = start.getChildren();
+            String type = populateSymbolTable(children.get(0), currentScope);
+            String id = populateSymbolTable(children.get(1), currentScope);
+
+            table.addSymbol(new Symbol(id, type, scope, false, false));
+        } else if(val.equals("WhileStatement")) {
+            // two children
+        } else if(val.equals("IfStatement")) {
+            // two children
+        } else if(val.equals("IntExpr")) {
+            // 1 or 3 children
+        } else if(val.equals("StringExpr")) {
+            // 1 child
+        } else if(val.equals("BooleanExpr")) {
+            // 1 or 3 children
+        } else if(isTerminal(val)) {
+            return val;
+        }
 
         // base case: terminal Node returns its value
         if(!start.hasChildren()) {
             return val;
-        } else { /*
-
-            // increase scope
-            scope++;
-            Node newScope = new Node(Integer.toString(scope), currentScope)
-            currentScope.addChild(newScope);
-            currentScope = newScope;
-
-            ArrayList<String> terminals = new ArrayList<String>();
+        } else { 
+            
             for(Node child : start.getChildren()) {
-                String terminal = populateSymbolTable(child, currentScope);
-                terminals.add(terminal);
-            } */
+                populateSymbolTable(child, currentScope);
+            }
         }
         return null;
+        
     }
 
     /**

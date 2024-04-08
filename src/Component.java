@@ -70,6 +70,15 @@ public class Component {
                 v.equals("false"));
     }
 
+    public boolean isTerminal(String v) {
+        return(isDigit(v) || isLetter(v) || isSymbol(v) ||
+                v.equals("int") ||
+                v.equals("string") ||
+                v.equals("boolean") ||
+                v.equals("true") ||
+                v.equals("false"));
+    }
+
     /**
      * returns Kind of keyword given string of possible keyword
      * @param v current token value

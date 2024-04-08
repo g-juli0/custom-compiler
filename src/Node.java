@@ -14,8 +14,8 @@ public class Node {
      * @param v value of Node
      */
     public Node(String v) {
-        this.children = new ArrayList<>();
-        this.value = v;
+        children = new ArrayList<>();
+        value = v;
     }
 
     /**
@@ -24,9 +24,9 @@ public class Node {
      * @param v value of Node
      */
     public Node(String v, Node p) {
-        this.children = new ArrayList<>();
-        this.value = v;
-        this.parent = p;
+        children = new ArrayList<>();
+        value = v;
+        parent = p;
     }
     
     /**
@@ -34,7 +34,7 @@ public class Node {
      * @return String value
      */
     public String getValue() {
-        return this.value;
+        return value;
     }
 
     /**
@@ -42,7 +42,7 @@ public class Node {
      * @return Node parent
      */
     public Node getParent() {
-        return this.parent;
+        return parent;
     }
 
     /**
@@ -50,7 +50,7 @@ public class Node {
      * @param p new parent Node
      */
     public void setParent(Node p) {
-        this.parent = p;
+        parent = p;
     }
 
     /**
@@ -66,7 +66,7 @@ public class Node {
      * @return ArrayList of child Nodes
      */
     public ArrayList<Node> getChildren() {
-        return this.children;
+        return children;
     }
 
     /**
@@ -74,6 +74,6 @@ public class Node {
      * @return true if children ArrayList not empty
      */
     public boolean hasChildren() {
-        return !this.children.isEmpty();
+        return !children.isEmpty();
     }
 }

@@ -6,23 +6,64 @@ import java.util.ArrayList;
  */
 public class SymbolTable {
 
-    private ArrayList<Symbol> symbols;
+    private SymbolTable parent;
+    private ArrayList<SymbolTable> children;
 
-    public SymbolTable() {
+    private ArrayList<Symbol> symbols;
+    private int scope;
+
+    public SymbolTable(int s) {
+        parent = null;
+        children = new ArrayList<>();
+
         symbols = new ArrayList<>();
+        scope = s;
+    }
+
+    public SymbolTable(int s, SymbolTable p) {
+        parent = p;
+        children = new ArrayList<>();
+
+        symbols = new ArrayList<>();
+        scope = s;
     }
 
     public void addSymbol(Symbol s) {
         symbols.add(s);
     }
 
-    public Symbol lookup(String id, String type, int scope) {
+    public Symbol lookup(String id) {
+        // look up in current scopre first
         for (Symbol s : symbols) {
-            if(s.getName().equals(id) && s.getType().equals(type) && s.getScope() == scope) {
+            if(s.getName().equals(id)) {
                 return s;
             }
         }
+
+        // if not found, look up in parent scopes
+        SymbolTable temp = parent;
+        while(temp != null) {
+            for (Symbol s : temp.getSymbols()) {
+                if(s.getName().equals(id)) {
+                    return s;
+                }
+            }
+            temp = temp.getParent();
+        }
+        // not found
         return null;
+    }
+
+    public SymbolTable getParent() {
+        return parent;
+    }
+
+    public ArrayList<SymbolTable> getChildren() {
+        return children;
+    }
+
+    public ArrayList<Symbol> getSymbols() {
+        return symbols;
     }
 
     public String toString() {

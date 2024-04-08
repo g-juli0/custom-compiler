@@ -210,8 +210,10 @@ public class SemanticAnalyzer extends Component {
         Node varDeclNode = new Node("VarDecl", parent);
         parent.addChild(varDeclNode);
         
-        type(varDeclNode);
-        id(varDeclNode);
+        String type = type(varDeclNode);
+        String id = id(varDeclNode);
+
+        table.addSymbol(new Symbol(id, type, scope, false, false));
     }
 
     /**
@@ -336,8 +338,8 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private void id(Node parent) {
-        character(parent);
+    private String id(Node parent) {
+        return character(parent);
     }
 
     /**
@@ -368,20 +370,24 @@ public class SemanticAnalyzer extends Component {
     /**
      * type ::== int | string | boolean
      */
-    private void type(Node parent) {
+    private String type(Node parent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TYPE_INT) {
             match("int");
             parent.addChild(new Node("int", parent));
+            return "int";
         } else if(currentKind == Kind.TYPE_STRING) {
             match("string");
             parent.addChild(new Node("string", parent));
+            return "string";
         } else if(currentKind == Kind.TYPE_BOOLEAN) {
             match("boolean");
             parent.addChild(new Node("boolean", parent));
+            return "boolean";
         }
+        return null;
     }
     
     /**
@@ -495,29 +501,6 @@ public class SemanticAnalyzer extends Component {
         parent.addChild(new Node("+", parent));
     }
 
-    private boolean typeCheck(Symbol s, String type) {
-        return false;
-    }
-
-    /**
-     * performs depth-first in-order traversal of AST and populates the SymbolTable
-     * @param start Node to start traversal at, enables recursion
-     */
-    private void populateSymbolTable(Node start, SymbolTable currentScope) {
-
-        if(isTerminal(start.getValue())) {
-            String parent = start.getParent().getValue();
-
-        }
-
-        if(start.hasChildren()) {
-            for(Node child : start.getChildren()) {
-                populateSymbolTable(child, currentScope);
-            }
-        }
-        
-    }
-
     /**
      * prints formatted symbol table
      */
@@ -535,6 +518,10 @@ public class SemanticAnalyzer extends Component {
         System.out.println("Program " + programNo + " Abstract Syntax Tree");
         System.out.println("------------------------------------");
         System.out.println(AST.toString());
+    }
+
+    public SyntaxTree getAST() {
+        return AST;
     }
 
     /**

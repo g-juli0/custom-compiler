@@ -34,12 +34,13 @@ public class Compiler {
 
                         if(analyzer.success()) {
                             // generate opcode
-                            /*
-                            CodeGenerator generator = new CodeGenerator(placeholder, programNo);
+                            CodeGenerator generator = new CodeGenerator(analyzer.getAST(), programNo);
 
                             if(generator.success()) {
-                                System.out.println("INFO - Program " + programNo + " successfully compiled");
-                            } */
+                                System.out.println("INFO - Program " + programNo + " successfully compiled.");
+                            } else {
+                                System.err.println("INFO - Code generation failed on program " + programNo + ". Compilation unsuccessful.\n");
+                            }
                         } else {
                             System.err.println("INFO - Semantic analyzer failed on program " + programNo + ". Skipping remaining compiler phases.\n");
                         }

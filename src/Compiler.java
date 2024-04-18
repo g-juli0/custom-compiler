@@ -37,7 +37,7 @@ public class Compiler {
                             CodeGenerator generator = new CodeGenerator(analyzer.getAST(), programNo);
 
                             if(generator.success()) {
-                                System.out.println("INFO - Program " + programNo + " successfully compiled.");
+                                System.out.println("INFO - Program " + programNo + " successfully compiled.\n");
                             } else {
                                 System.err.println("INFO - Code generation failed on program " + programNo + ". Compilation unsuccessful.\n");
                             }

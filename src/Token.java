@@ -8,14 +8,15 @@ public class Token extends Component {
 
     private Kind kindOfToken;
     private String value;
-    // keep track of line and pos?
+    private int line;
+    private int pos;
 
     /**
      * Token constructor
      * @param k Kind of Token
      * @param v value of Token
      */
-    public Token(Kind k, String v) {
+    public Token(Kind k, String v, int line, int pos) {
         this.kindOfToken = k;
         this.value = v;
     }
@@ -34,6 +35,22 @@ public class Token extends Component {
      */
     public String getValue() {
         return this.value;
+    }
+
+    /**
+     * getter for line number of token
+     * @return int line number
+     */
+    public int getLine() {
+        return line;
+    }
+
+    /**
+     * getter for token position within line
+     * @return int position
+     */
+    public int getPos() {
+        return pos;
     }
     
     /**

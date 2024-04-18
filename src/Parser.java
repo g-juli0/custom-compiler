@@ -70,7 +70,7 @@ public class Parser extends Component {
                 pop();
                 // VALID EXPECTED MSG
             } else {
-                log("ERROR", "Expected [ " + expectedValue + " ], found [ " + currentToken.getValue() + " ]");
+                log("ERROR", "Expected [ " + expectedValue + " ], found [ " + currentToken.getValue() + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")");
                 errorCount++;
             }
         }
@@ -174,8 +174,8 @@ public class Parser extends Component {
         parent.addChild(statementNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = peek().getKind();
-        String currentValue = peek().getValue();
+        Token currentToken = peek();
+        Kind currentKind = currentToken.getKind();
         
         // PrintStatement
         if(currentKind == Kind.PRINT) {
@@ -199,7 +199,7 @@ public class Parser extends Component {
             parseBlock(statementNode);
         // error - unexpected token
         } else {
-            log("ERROR", "Expected Statement [PRINT, ID, TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, WHILE, IF, OPEN_BLOCK] , found " + currentKind + " with value [ " + currentValue + " ]");
+            log("ERROR", "Expected Statement [PRINT, ID, TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, WHILE, IF, OPEN_BLOCK] , found " + currentKind + " with value [ " + currentToken.getValue() + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")");
         }
     }
 
@@ -311,8 +311,8 @@ public class Parser extends Component {
         parent.addChild(exprNode);
 
         // peek at current Token for Kind checking
-        Kind currentKind = peek().getKind();
-        String currentValue = peek().getValue();
+        Token currentToken = peek();
+        Kind currentKind = currentToken.getKind();
 
         if(currentKind == Kind.DIGIT) {
             parseIntExpr(exprNode);
@@ -325,7 +325,7 @@ public class Parser extends Component {
         } else if (currentKind == Kind.ID) {
             parseId(exprNode);
         } else {
-            log("ERROR", "Expected Expr [TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, FALSE, TRUE, ID] , found " + currentKind + " with value [ " + currentValue + " ]");
+            log("ERROR", "Expected Expr [TYPE_INT, TYPE_STRING, TYPE_BOOLEAN, FALSE, TRUE, ID] , found " + currentKind + " with value [ " + currentToken.getValue() + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")");
         }
     }
 
@@ -484,7 +484,8 @@ public class Parser extends Component {
         parent.addChild(charNode);
 
         // peek at current Token for Value checking
-        String currentValue = peek().getValue();
+        Token currentToken = peek();
+        String currentValue = currentToken.getValue();
 
         String expectedLetter = "";
 
@@ -515,7 +516,7 @@ public class Parser extends Component {
             case "x": expectedLetter = "x"; break;
             case "y": expectedLetter = "y"; break;
             case "z": expectedLetter = "z"; break;
-            default: log("ERROR", "Expected char [a-z] , found [ " + currentValue + " ]"); break;
+            default: log("ERROR", "Expected char [a-z] , found [ " + currentValue + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")"); break;
         }
 
         match(expectedLetter);
@@ -549,7 +550,8 @@ public class Parser extends Component {
         parent.addChild(digitNode);
 
         // peek at current Token for Value checking
-        String currentValue = peek().getValue();
+        Token currentToken = peek();
+        String currentValue = currentToken.getValue();
 
         String expectedDigit = "";
 
@@ -564,7 +566,7 @@ public class Parser extends Component {
             case "7": expectedDigit = "7"; break;
             case "8": expectedDigit = "8"; break;
             case "9": expectedDigit = "9"; break;
-            default: log("ERROR", "Expected digit [0-9] , found [ " + currentValue + " ]"); break;
+            default: log("ERROR", "Expected digit [0-9] , found [ " + currentValue + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")"); break;
         }
 
         match(expectedDigit);
@@ -583,8 +585,8 @@ public class Parser extends Component {
         parent.addChild(boolOpNode);
 
         // peek at current Token for Value checking
-        Kind currentKind = peek().getKind();
-        String currentValue = peek().getValue();
+        Token currentToken = peek();
+        Kind currentKind = currentToken.getKind();
 
         if(currentKind == Kind.EQUALITY_OP) {
             match("==");
@@ -593,7 +595,7 @@ public class Parser extends Component {
             match("!=");
             boolOpNode.addChild(new Node("!=", boolOpNode));
         } else {
-            log("ERROR", "Expected boolop [==, !=] , found [ " + currentValue + " ]");
+            log("ERROR", "Expected boolop [==, !=] , found [ " + currentToken.getValue() + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")");
         }
     }
 
@@ -609,7 +611,8 @@ public class Parser extends Component {
         parent.addChild(boolValNode);
 
         // peek at current Token for Value checking
-        Kind currentKind = peek().getKind();
+        Token currentToken = peek();
+        Kind currentKind = currentToken.getKind();
 
         if(currentKind == Kind.TRUE) {
             match("true");
@@ -618,7 +621,7 @@ public class Parser extends Component {
             match("false");
             boolValNode.addChild(new Node("false", boolValNode));
         } else {
-            log("ERROR", "Expected boolval [true, false] , found [ " + currentKind + " ]");
+            log("ERROR", "Expected boolval [true, false] , found [ " + currentKind + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")");
         }
     }
 

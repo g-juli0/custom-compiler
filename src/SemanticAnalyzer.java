@@ -395,7 +395,8 @@ public class SemanticAnalyzer extends Component {
      */
     private String character(Node parent) {
         // peek at current Token for Value checking
-        String currentValue = peek().getValue();
+        Token currentToken = peek();
+        String currentValue = currentToken.getValue();
 
         String expectedLetter = "";
 
@@ -426,7 +427,7 @@ public class SemanticAnalyzer extends Component {
             case "x": expectedLetter = "x"; break;
             case "y": expectedLetter = "y"; break;
             case "z": expectedLetter = "z"; break;
-            default: log("ERROR", "Expected char [a-z] , found [ " + currentValue + " ]"); break;
+            default: log("ERROR", "Expected char [a-z] , found [ " + currentValue + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")"); break;
         }
 
         match(expectedLetter);
@@ -439,7 +440,8 @@ public class SemanticAnalyzer extends Component {
      */
     private void digit(Node parent) {
         // peek at current Token for Value checking
-        String currentValue = peek().getValue();
+        Token currentToken = peek();
+        String currentValue = currentToken.getValue();
 
         String expectedDigit = "";
 
@@ -454,7 +456,7 @@ public class SemanticAnalyzer extends Component {
             case "7": expectedDigit = "7"; break;
             case "8": expectedDigit = "8"; break;
             case "9": expectedDigit = "9"; break;
-            default: log("ERROR", "Expected digit [0-9] , found [ " + currentValue + " ]"); break;
+            default: log("ERROR", "Expected digit [0-9] , found [ " + currentValue + " ] at (" + currentToken.getLine() + ":" + currentToken.getPos() + ")"); break;
         }
 
         match(expectedDigit);

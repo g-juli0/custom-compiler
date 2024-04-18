@@ -511,6 +511,14 @@ public class SemanticAnalyzer extends Component {
     }
 
     /**
+     * getter for SymbolTable
+     * @return complete SymbolTable
+     */
+    public SymbolTable getSymbolTable() {
+        return table;
+    }
+
+    /**
      * prints formatted abstract syntax tree
      */
     public void printAST(int programNo) {
@@ -520,6 +528,10 @@ public class SemanticAnalyzer extends Component {
         System.out.println(AST.toString());
     }
 
+    /**
+     * getter for abstract syntax tree
+     * @return SyntaxTree AST
+     */
     public SyntaxTree getAST() {
         return AST;
     }

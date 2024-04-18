@@ -17,7 +17,11 @@ public class CodeGenerator extends Component {
     // static table to hold temp addresses
     // jump distance table
 
-    public CodeGenerator(SyntaxTree ast, int programNo) {
+    // backpatching to replace temp addresses with real addresses
+
+    // strings are equal if they point to the same address
+
+    public CodeGenerator(SyntaxTree ast, /*SymbolTable*/int programNo) {
         // initialize flags and variables
         AST = ast;
         warningCount = 0;

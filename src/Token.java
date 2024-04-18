@@ -8,6 +8,7 @@ public class Token extends Component {
 
     private Kind kindOfToken;
     private String value;
+    // keep track of line and pos?
 
     /**
      * Token constructor

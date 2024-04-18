@@ -12,6 +12,7 @@ public class SemanticAnalyzer extends Component {
     private SyntaxTree AST;
     private SymbolTable table;
 
+    private SyntaxTree scopeTree;
     private int scope;
 
     /**
@@ -34,12 +35,16 @@ public class SemanticAnalyzer extends Component {
         log("INFO", "Semantically analyzing program " + Integer.toString(programNo) + "...");
 
         // entry point for pseudo parse
-        block(null);
+        block(null, null);
 
         if(success()) {
             log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             printAST(programNo);
-            //populateSymbolTable(AST.getRoot(), table);
+
+            System.out.println("Program " + programNo + " Scope Tree");
+            System.out.println("------------------------------------");
+            System.out.println(scopeTree.toString());
+
             printSymbolTable(programNo);
         } else {
             log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
@@ -79,22 +84,39 @@ public class SemanticAnalyzer extends Component {
     /**
      * Block ::== { StatementList }
      */
-    private void block(Node parent) {
+    private void block(Node astParent, Node scopeParent) {
         // log debug message
         log("DEBUG", "Block");
 
         match("{");
 
-        // if root has not already been created
-        if(parent == null) {
+        // if AST root has not already been created
+        if(astParent == null) {
             // create new root for AST
-            Node root = new Node("Block");
-            AST = new SyntaxTree(root);
-            statementList(root);
+            Node astRoot = new Node("Block");
+            AST = new SyntaxTree(astRoot);
+
+            // create new root for scope tree
+            Node scopeRoot = new Node(Integer.toString(scope));
+            scopeTree = new SyntaxTree(scopeRoot);
+
+            statementList(astRoot, scopeRoot);
         } else {
-            Node blockNode = new Node("Block", parent);
-            parent.addChild(blockNode);
-            statementList(blockNode);
+            // create new Block Node with parent and add to children list
+            Node blockNode = new Node("Block", astParent);
+            astParent.addChild(blockNode);
+
+            // increase scope counter, create new scope Node with parent, and add to children list
+            scope++;
+            Node scopeNode = new Node(Integer.toString(scope), scopeParent);
+            scopeParent.addChild(scopeNode);
+
+            statementList(blockNode, scopeNode);
+        }
+
+        // close scope
+        if(scopeParent != null && scopeParent.getParent() != null) {
+            scopeParent = scopeParent.getParent();
         }
 
         match("}");
@@ -107,7 +129,7 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private void statementList(Node parent) {
+    private void statementList(Node astParent, Node scopeParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
@@ -120,8 +142,8 @@ public class SemanticAnalyzer extends Component {
                 currentKind == Kind.WHILE || 
                 currentKind == Kind.IF ||
                 currentKind == Kind.OPEN_BLOCK) {
-            statement(parent);
-            statementList(parent);
+            statement(astParent, scopeParent);
+            statementList(astParent, scopeParent);
         }
     }
 
@@ -135,43 +157,43 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private void statement(Node parent) {
+    private void statement(Node astParent, Node scopeParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
         
         // PrintStatement
         if(currentKind == Kind.PRINT) {
-            printStatement(parent);
+            printStatement(astParent);
         // AssignStatement
         } else if(currentKind == Kind.ID) {
-            assignmentStatement(parent);
+            assignmentStatement(astParent);
         // VarDecl
         } else if(currentKind == Kind.TYPE_INT || 
                 currentKind == Kind.TYPE_STRING ||
                 currentKind == Kind.TYPE_BOOLEAN) {
-            varDecl(parent);
+            varDecl(astParent);
         // WhileStatement
         } else if(currentKind == Kind.WHILE) {
-            whileStatement(parent);
+            whileStatement(astParent, scopeParent);
         // IfStatement
         } else if(currentKind == Kind.IF) {
-            ifStatement(parent);
+            ifStatement(astParent, scopeParent);
         // Block
         } else if(currentKind == Kind.OPEN_BLOCK) {
-            block(parent);
+            block(astParent, scopeParent);
         }
     }
 
     /**
      * PrintStatement ::== print ( Expr )
      */
-    private void printStatement(Node parent) {
+    private void printStatement(Node astParent) {
         // log debug message
         log("DEBUG", "PrintStatement");
 
         // create new Node and add it to tree
-        Node printStatementNode = new Node("PrintStatement", parent);
-        parent.addChild(printStatementNode);
+        Node printStatementNode = new Node("PrintStatement", astParent);
+        astParent.addChild(printStatementNode);
 
         match("print");
         match("(");
@@ -184,13 +206,13 @@ public class SemanticAnalyzer extends Component {
     /**
      * AssignmentStatement ::== Id = Expr
      */
-    private void assignmentStatement(Node parent) {
+    private void assignmentStatement(Node astParent) {
         // log debug message
         log("DEBUG", "AssignmentStatement");
 
         // create new Node and add it to tree
-        Node assignStatementNode = new Node("AssignmentStatement", parent);
-        parent.addChild(assignStatementNode);
+        Node assignStatementNode = new Node("AssignmentStatement", astParent);
+        astParent.addChild(assignStatementNode);
 
         id(assignStatementNode);
 
@@ -202,13 +224,13 @@ public class SemanticAnalyzer extends Component {
     /**
      * VarDecl ::== type Id
      */
-    private void varDecl(Node parent) {
+    private void varDecl(Node astParent) {
         // log debug message
         log("DEBUG", "VarDecl");
 
         // create new Node and add it to tree
-        Node varDeclNode = new Node("VarDecl", parent);
-        parent.addChild(varDeclNode);
+        Node varDeclNode = new Node("VarDecl", astParent);
+        astParent.addChild(varDeclNode);
         
         String type = type(varDeclNode);
         String id = id(varDeclNode);
@@ -219,35 +241,35 @@ public class SemanticAnalyzer extends Component {
     /**
      * WhileStatement ::== while BooleanExpr Block
      */
-    private void whileStatement(Node parent) {
+    private void whileStatement(Node astParent, Node scopeParent) {
         // log debug message
         log("DEBUG", "WhileStatement");
 
         // create new Node and add it to tree
-        Node whileStatementNode = new Node("WhileStatement", parent);
-        parent.addChild(whileStatementNode);
+        Node whileStatementNode = new Node("WhileStatement", astParent);
+        astParent.addChild(whileStatementNode);
 
         match("while");
 
         booleanExpr(whileStatementNode);
-        block(whileStatementNode);
+        block(whileStatementNode, scopeParent);
     }
 
     /**
      * IfStatement ::== if BooleanExpr Block
      */
-    private void ifStatement(Node parent) {
+    private void ifStatement(Node astParent, Node scopeParent) {
         // log debug message
         log("DEBUG", "IfStatement");
 
         // create new Node and add it to tree
-        Node ifStatementNode = new Node("IfStatement", parent);
-        parent.addChild(ifStatementNode);
+        Node ifStatementNode = new Node("IfStatement", astParent);
+        astParent.addChild(ifStatementNode);
 
         match("if");
 
         booleanExpr(ifStatementNode);
-        block(ifStatementNode);
+        block(ifStatementNode, scopeParent);
     }
 
     /**
@@ -258,20 +280,20 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private void expr(Node parent) {
+    private void expr(Node astParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.DIGIT) {
-            intExpr(parent);
+            intExpr(astParent);
         } else if(currentKind == Kind.QUOTE) {
-            stringExpr(parent);
+            stringExpr(astParent);
         } else if(currentKind == Kind.OPEN_PAREN ||
                     currentKind == Kind.FALSE ||
                     currentKind == Kind.TRUE) {
-            booleanExpr(parent);
+            booleanExpr(astParent);
         } else if(currentKind == Kind.ID) {
-            id(parent);
+            id(astParent);
         }
     }
 
@@ -279,32 +301,32 @@ public class SemanticAnalyzer extends Component {
      * IntExpr ::== digit intop Expr
      *         ::== digit
      */
-    private void intExpr(Node parent) {
+    private void intExpr(Node astParent) {
         // log debug message
         log("DEBUG", "IntExpr");
         
         // parse first digit, then get current Token after digit is matched
-        digit(parent);
+        digit(astParent);
 
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.ADD_OP) {
-            intOp(parent);
-            expr(parent);
+            intOp(astParent);
+            expr(astParent);
         }
     }
 
     /**
      * StringExpr ::== " CharList "
      */
-    private void stringExpr(Node parent) {
+    private void stringExpr(Node astParent) {
         // log debug message
         log("DEBUG", "StringExpr");
 
         match("\"");
 
-        charList(parent);
+        charList(astParent);
 
         match("\"");
     }
@@ -313,7 +335,7 @@ public class SemanticAnalyzer extends Component {
      * BooleanExpr ::== ( Expr boolop Expr )
      *             ::== boolval
      */
-    private void booleanExpr(Node parent) {
+    private void booleanExpr(Node astParent) {
         // log debug message
         log("DEBUG", "BooleanExpr");
 
@@ -321,13 +343,13 @@ public class SemanticAnalyzer extends Component {
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TRUE || currentKind == Kind.FALSE) {
-            boolVal(parent);
+            boolVal(astParent);
         } else {
             match("(");
 
-            expr(parent);
-            boolOp(parent);
-            expr(parent);
+            expr(astParent);
+            boolOp(astParent);
+            expr(astParent);
 
             match(")");
         }
@@ -338,8 +360,8 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private String id(Node parent) {
-        return character(parent);
+    private String id(Node astParent) {
+        return character(astParent);
     }
 
     /**
@@ -349,7 +371,7 @@ public class SemanticAnalyzer extends Component {
      * 
      * convert CharList to a single string for AST Node
      */
-    private void charList(Node parent) {
+    private void charList(Node astParent) {
         StringBuilder strBuilder = new StringBuilder();
 
         // peek at current Token for Kind and Value checking
@@ -363,28 +385,28 @@ public class SemanticAnalyzer extends Component {
         }
 
         // create new Node and add it to tree
-        Node charListNode = new Node(strBuilder.toString(), parent);
-        parent.addChild(charListNode);
+        Node charListNode = new Node(strBuilder.toString(), astParent);
+        astParent.addChild(charListNode);
     }
 
     /**
      * type ::== int | string | boolean
      */
-    private String type(Node parent) {
+    private String type(Node astParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TYPE_INT) {
             match("int");
-            parent.addChild(new Node("int", parent));
+            astParent.addChild(new Node("int", astParent));
             return "int";
         } else if(currentKind == Kind.TYPE_STRING) {
             match("string");
-            parent.addChild(new Node("string", parent));
+            astParent.addChild(new Node("string", astParent));
             return "string";
         } else if(currentKind == Kind.TYPE_BOOLEAN) {
             match("boolean");
-            parent.addChild(new Node("boolean", parent));
+            astParent.addChild(new Node("boolean", astParent));
             return "boolean";
         }
         return null;
@@ -393,7 +415,7 @@ public class SemanticAnalyzer extends Component {
     /**
      * char ::== a | b | c | ... | z
      */
-    private String character(Node parent) {
+    private String character(Node astParent) {
         // peek at current Token for Value checking
         Token currentToken = peek();
         String currentValue = currentToken.getValue();
@@ -431,14 +453,14 @@ public class SemanticAnalyzer extends Component {
         }
 
         match(expectedLetter);
-        parent.addChild(new Node(expectedLetter, parent));
+        astParent.addChild(new Node(expectedLetter, astParent));
         return expectedLetter;
     }
 
     /**
      * digit ::== 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
      */
-    private void digit(Node parent) {
+    private void digit(Node astParent) {
         // peek at current Token for Value checking
         Token currentToken = peek();
         String currentValue = currentToken.getValue();
@@ -460,47 +482,47 @@ public class SemanticAnalyzer extends Component {
         }
 
         match(expectedDigit);
-        parent.addChild(new Node(expectedDigit, parent));
+        astParent.addChild(new Node(expectedDigit, astParent));
     }
 
     /**
      * boolop ::== == | !=
      */
-    private void boolOp(Node parent) {
+    private void boolOp(Node astParent) {
         // peek at current Token for Value checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.EQUALITY_OP) {
             match("==");
-            parent.addChild(new Node("==", parent));
+            astParent.addChild(new Node("==", astParent));
         } else if(currentKind == Kind.INEQUALITY_OP) {
             match("!=");
-            parent.addChild(new Node("!=", parent));
+            astParent.addChild(new Node("!=", astParent));
         }
     }
 
     /**
      * boolval ::== false | true
      */
-    private void boolVal(Node parent) {
+    private void boolVal(Node astParent) {
         // peek at current Token for Value checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.TRUE) {
             match("true");
-            parent.addChild(new Node("true", parent));
+            astParent.addChild(new Node("true", astParent));
         } else if(currentKind == Kind.FALSE) {
             match("false");
-            parent.addChild(new Node("false", parent));
+            astParent.addChild(new Node("false", astParent));
         }
     }
 
     /**
      * intop ::== +
      */
-    private void intOp(Node parent) {
+    private void intOp(Node astParent) {
         match("+");
-        parent.addChild(new Node("+", parent));
+        astParent.addChild(new Node("+", astParent));
     }
 
     /**

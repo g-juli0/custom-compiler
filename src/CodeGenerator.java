@@ -8,7 +8,7 @@ public class CodeGenerator extends Component {
     private int errorCount;     // number of detected errors
 
     private SyntaxTree AST;
-    // need symbol table
+    private SymbolTable table;
 
     // array of strings (to be able to store temp values), size 256 MAX (bytes)
     // ArrayList<String> executableImage = new ArrayList<>();
@@ -21,13 +21,16 @@ public class CodeGenerator extends Component {
 
     // strings are equal if they point to the same address
 
-    public CodeGenerator(SyntaxTree ast, /*SymbolTable*/int programNo) {
+    public CodeGenerator(SyntaxTree ast, SymbolTable t, int programNo) {
         // initialize flags and variables
         AST = ast;
+        table = t;
         warningCount = 0;
         errorCount = 0;
 
         log("INFO", "Generating code for program " + Integer.toString(programNo) + "...");
+
+        // functionality
 
         if(success()) {
             log("INFO", "Code generation completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");

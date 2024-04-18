@@ -6,6 +6,7 @@ import java.util.ArrayList;
  */
 public class SymbolTable {
 
+    //private SyntaxTree scopeTree;
     private SymbolTable parent;
     private ArrayList<SymbolTable> children;
 

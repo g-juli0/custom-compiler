@@ -8,7 +8,6 @@ public class Symbol {
     private String name;
     private String type;
     private int scope;
-    // line and position?
     private boolean isInit;
     private boolean isUsed;
  

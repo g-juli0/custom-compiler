@@ -6,38 +6,27 @@ import java.util.ArrayList;
  */
 public class SymbolTable {
 
-    //private SyntaxTree scopeTree;
-    private SymbolTable parent;
+    private SyntaxTree scopeTree;
     private ArrayList<SymbolTable> children;
-
     private ArrayList<Symbol> symbols;
-    private int scope;
 
-    public SymbolTable(int s) {
-        parent = null;
+    public SymbolTable() {
         children = new ArrayList<>();
-
         symbols = new ArrayList<>();
-        scope = s;
     }
 
     public void addSymbol(Symbol s) {
         symbols.add(s);
     }
 
-    public Symbol lookup(String id) {
-        // look up in current scope first
-        for (Symbol s : symbols) {
-            if(s.getName().equals(id)) {
-                return s;
-            }
-        }
-
+    public Symbol lookup(String id, Node scope) {
         // if not found, look up in parent scopes
-        SymbolTable temp = parent;
+        Node temp = scope;
         while(temp != null) {
-            for (Symbol s : temp.getSymbols()) {
-                if(s.getName().equals(id)) {
+            for (Symbol s : symbols) {
+                // if id name is the same and if scope value is the same
+                //System.out.println(id + ", " + scope.getValue());
+                if(s.getName().equals(id) && Integer.toString(s.getScope()).equals(temp.getValue())) {
                     return s;
                 }
             }
@@ -45,10 +34,6 @@ public class SymbolTable {
         }
         // not found
         return null;
-    }
-
-    public SymbolTable getParent() {
-        return parent;
     }
 
     public ArrayList<SymbolTable> getChildren() {

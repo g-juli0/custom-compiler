@@ -27,7 +27,7 @@ public class SemanticAnalyzer extends Component {
         tokenStream = stream;
 
         scope = 0;
-        table = new SymbolTable(scope);
+        table = new SymbolTable();
 
         warningCount = 0;
         errorCount = 0;
@@ -85,12 +85,12 @@ public class SemanticAnalyzer extends Component {
      * @param type specified type for assignment
      * @return true if types match
      */
-    private boolean typeCheck(Symbol symbol, String type) {
+    private boolean typeCheck(Symbol symbol, String type, Node scopeParent) {
         String sType = symbol.getType();
 
         // if the other side of the expression is an id
         if(type.length() == 1) {
-            Symbol other = table.lookup(type);
+            Symbol other = table.lookup(type, scopeParent);
             if(sType.equals(other.getType())) {
                 return true;
             }
@@ -186,10 +186,10 @@ public class SemanticAnalyzer extends Component {
         
         // PrintStatement
         if(currentKind == Kind.PRINT) {
-            printStatement(astParent);
+            printStatement(astParent, scopeParent);
         // AssignStatement
         } else if(currentKind == Kind.ID) {
-            assignmentStatement(astParent);
+            assignmentStatement(astParent, scopeParent);
         // VarDecl
         } else if(currentKind == Kind.TYPE_INT || 
                 currentKind == Kind.TYPE_STRING ||
@@ -210,7 +210,7 @@ public class SemanticAnalyzer extends Component {
     /**
      * PrintStatement ::== print ( Expr )
      */
-    private void printStatement(Node astParent) {
+    private void printStatement(Node astParent, Node scopeParent) {
         // log debug message
         log("DEBUG", "PrintStatement");
 
@@ -221,7 +221,7 @@ public class SemanticAnalyzer extends Component {
         match("print");
         match("(");
 
-        expr(printStatementNode);
+        expr(printStatementNode, scopeParent);
 
         match(")");
     }
@@ -229,7 +229,7 @@ public class SemanticAnalyzer extends Component {
     /**
      * AssignmentStatement ::== Id = Expr
      */
-    private void assignmentStatement(Node astParent) {
+    private void assignmentStatement(Node astParent, Node scopeParent) {
         // log debug message
         log("DEBUG", "AssignmentStatement");
 
@@ -241,18 +241,18 @@ public class SemanticAnalyzer extends Component {
 
         match("=");
 
-        String type = expr(assignStatementNode);
+        String type = expr(assignStatementNode, scopeParent);
 
         // check if symbol is declared in table at all
-        Symbol s = table.lookup(symbol);
+        Symbol s = table.lookup(symbol, scopeParent);
         if(s != null) {
             // perform type check
-            if(typeCheck(s, type)) {
+            if(typeCheck(s, type, scopeParent)) {
                 // symbol has now been initialized to a value
                 s.initialize();
             } else {
                 // mismatched type
-                log("ERROR", "Mismatched types. Unable to assign symbol " + s.getName() + " to type " + type);
+                log("ERROR", "Mismatched types. Unable to assign symbol " + symbol + " to type " + type);
                 errorCount++;
             }
         } else {
@@ -292,7 +292,7 @@ public class SemanticAnalyzer extends Component {
 
         match("while");
 
-        booleanExpr(whileStatementNode);
+        booleanExpr(whileStatementNode, scopeParent);
         block(whileStatementNode, scopeParent);
     }
 
@@ -309,7 +309,7 @@ public class SemanticAnalyzer extends Component {
 
         match("if");
 
-        booleanExpr(ifStatementNode);
+        booleanExpr(ifStatementNode, scopeParent);
         block(ifStatementNode, scopeParent);
     }
 
@@ -321,12 +321,12 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private String expr(Node astParent) {
+    private String expr(Node astParent, Node scopeParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.DIGIT) {
-            intExpr(astParent);
+            intExpr(astParent, scopeParent);
             return "int";
         } else if(currentKind == Kind.QUOTE) {
             stringExpr(astParent);
@@ -334,12 +334,12 @@ public class SemanticAnalyzer extends Component {
         } else if(currentKind == Kind.OPEN_PAREN ||
                     currentKind == Kind.FALSE ||
                     currentKind == Kind.TRUE) {
-            booleanExpr(astParent);
+            booleanExpr(astParent, scopeParent);
             return "boolean";
         } else if(currentKind == Kind.ID) {
             String s = id(astParent);
             // mark id as used
-            Symbol symbol = table.lookup(s);
+            Symbol symbol = table.lookup(s, scopeParent);
             if(symbol != null) {
                 symbol.use();
             } else {
@@ -356,7 +356,7 @@ public class SemanticAnalyzer extends Component {
      * IntExpr ::== digit intop Expr
      *         ::== digit
      */
-    private void intExpr(Node astParent) {
+    private void intExpr(Node astParent, Node scopeParent) {
         // log debug message
         log("DEBUG", "IntExpr");
         
@@ -368,7 +368,7 @@ public class SemanticAnalyzer extends Component {
 
         if(currentKind == Kind.ADD_OP) {
             intOp(astParent);
-            expr(astParent);
+            expr(astParent, scopeParent);
         }
     }
 
@@ -390,7 +390,7 @@ public class SemanticAnalyzer extends Component {
      * BooleanExpr ::== ( Expr boolop Expr )
      *             ::== boolval
      */
-    private void booleanExpr(Node astParent) {
+    private void booleanExpr(Node astParent, Node scopeParent) {
         // log debug message
         log("DEBUG", "BooleanExpr");
 
@@ -402,9 +402,9 @@ public class SemanticAnalyzer extends Component {
         } else {
             match("(");
 
-            expr(astParent);
+            expr(astParent, scopeParent);
             boolOp(astParent);
-            expr(astParent);
+            expr(astParent, scopeParent);
 
             match(")");
         }

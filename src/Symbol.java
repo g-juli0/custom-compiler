@@ -71,14 +71,14 @@ public class Symbol {
     /**
      * sets isInit value to true
      */
-    public void initialized() {
+    public void initialize() {
         isInit = true;
     }
 
     /**
      * sets isUsed to true
      */
-    public void used() {
+    public void use() {
         isUsed = true;
     }
 }

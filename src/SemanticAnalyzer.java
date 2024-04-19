@@ -37,14 +37,12 @@ public class SemanticAnalyzer extends Component {
         // entry point for pseudo parse
         block(null, null);
 
+        warningCheck();
+
         if(success()) {
             log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             printAST(programNo);
-
-            System.out.println("Program " + programNo + " Scope Tree");
-            System.out.println("------------------------------------");
-            System.out.println(scopeTree.toString());
-
+            //System.out.println(scopeTree.toString());
             printSymbolTable(programNo);
         } else {
             log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
@@ -79,6 +77,31 @@ public class SemanticAnalyzer extends Component {
             // remove Token and continue
             pop();
         }
+    }
+
+    /**
+     * type checks an id and a type or another id
+     * @param symbol symbol to evaluate
+     * @param type specified type for assignment
+     * @return true if types match
+     */
+    private boolean typeCheck(Symbol symbol, String type) {
+        String sType = symbol.getType();
+
+        // if the other side of the expression is an id
+        if(type.length() == 1) {
+            Symbol other = table.lookup(type);
+            if(sType.equals(other.getType())) {
+                return true;
+            }
+        // int, string, or boolean expr
+        } else {
+            if(sType.equals(type)) {
+                return true;
+            }
+        }
+        // if neither check returns true
+        return false;
     }
 
     /**
@@ -214,11 +237,29 @@ public class SemanticAnalyzer extends Component {
         Node assignStatementNode = new Node("AssignmentStatement", astParent);
         astParent.addChild(assignStatementNode);
 
-        id(assignStatementNode);
+        String symbol = id(assignStatementNode);
 
         match("=");
 
-        expr(assignStatementNode);
+        String type = expr(assignStatementNode);
+
+        // check if symbol is declared in table at all
+        Symbol s = table.lookup(symbol);
+        if(s != null) {
+            // perform type check
+            if(typeCheck(s, type)) {
+                // symbol has now been initialized to a value
+                s.initialize();
+            } else {
+                // mismatched type
+                log("ERROR", "Mismatched types. Unable to assign symbol " + s.getName() + " to type " + type);
+                errorCount++;
+            }
+        } else {
+            // not in symbol table
+            log("ERROR", "Variable not declared. Symbol " + symbol + " not found in symbol table.");
+            errorCount++;
+        } 
     }
 
     /**
@@ -280,21 +321,35 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private void expr(Node astParent) {
+    private String expr(Node astParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.DIGIT) {
             intExpr(astParent);
+            return "int";
         } else if(currentKind == Kind.QUOTE) {
             stringExpr(astParent);
+            return "string";
         } else if(currentKind == Kind.OPEN_PAREN ||
                     currentKind == Kind.FALSE ||
                     currentKind == Kind.TRUE) {
             booleanExpr(astParent);
+            return "boolean";
         } else if(currentKind == Kind.ID) {
-            id(astParent);
+            String s = id(astParent);
+            // mark id as used
+            Symbol symbol = table.lookup(s);
+            if(symbol != null) {
+                symbol.use();
+            } else {
+                // not in symbol table 
+                log("ERROR", "Variable not declared. Symbol " + symbol + " not found in symbol table.");
+                errorCount++;
+            }
+            return s;
         }
+        return null;
     }
 
     /**
@@ -523,6 +578,19 @@ public class SemanticAnalyzer extends Component {
     private void intOp(Node astParent) {
         match("+");
         astParent.addChild(new Node("+", astParent));
+    }
+
+    private void warningCheck() {
+        for(Symbol s : table.getSymbols()) {
+            if(!s.getIsInit()) {
+                warningCount++;
+                log("WARNING", "Symbol " + s.getName() + " is not initialized. Set to default value for type " + s.getType());
+            }
+            if(!s.getIsUsed()) {
+                warningCount++;
+                log("WARNING", "Unused symbol " + s.getName() + " of type " + s.getType());
+            }
+        }
     }
 
     /**

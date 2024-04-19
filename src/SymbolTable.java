@@ -21,20 +21,12 @@ public class SymbolTable {
         scope = s;
     }
 
-    public SymbolTable(int s, SymbolTable p) {
-        parent = p;
-        children = new ArrayList<>();
-
-        symbols = new ArrayList<>();
-        scope = s;
-    }
-
     public void addSymbol(Symbol s) {
         symbols.add(s);
     }
 
     public Symbol lookup(String id) {
-        // look up in current scopre first
+        // look up in current scope first
         for (Symbol s : symbols) {
             if(s.getName().equals(id)) {
                 return s;

@@ -126,3 +126,20 @@ s = "this string is /* in */ visible"
 {a=12}$
 
 {/* no EOP $ */ int i = 1}
+
+{/* scope test */
+ int a
+ a = 1
+ {
+  string b
+  b = "b"
+ }
+ a = 2
+ {
+  a = 3
+  int b
+  b = 0
+  {}{{}}
+  print(a)
+ }
+}$

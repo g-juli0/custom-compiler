@@ -10,6 +10,7 @@ public class Symbol {
     private int scope;
     private boolean isInit;
     private boolean isUsed;
+    // value, line, pos
  
     /**
      * constructor for Symbol object

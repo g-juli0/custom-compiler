@@ -44,7 +44,7 @@ public class SemanticAnalyzer extends Component {
         if(success()) {
             log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             printAST(programNo);
-            System.out.println(scopeTree.toString());
+            printScopeTree(programNo);
             printSymbolTable(programNo);
         } else {
             log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
@@ -627,6 +627,16 @@ public class SemanticAnalyzer extends Component {
      */
     public SyntaxTree getAST() {
         return AST;
+    }
+
+    /**
+     * prints formatted scope tree
+     * @param programNo
+     */
+    public void printScopeTree(int programNo) {
+        System.out.println("Program " + programNo + " Scope Tree");
+        System.out.println("------------------------------------");
+        System.out.println(scopeTree.toString());
     }
 
     /**

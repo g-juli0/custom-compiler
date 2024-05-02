@@ -13,6 +13,7 @@ public class SemanticAnalyzer extends Component {
     private SymbolTable table;
 
     private SyntaxTree scopeTree;
+    private Node scopePointer;
     private int scope;
 
     /**
@@ -35,14 +36,15 @@ public class SemanticAnalyzer extends Component {
         log("INFO", "Semantically analyzing program " + Integer.toString(programNo) + "...");
 
         // entry point for pseudo parse
-        block(null, null);
+        block(null);
+        match("$");
 
         warningCheck();
 
         if(success()) {
             log("INFO", "Semantic analysis completed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
             printAST(programNo);
-            //System.out.println(scopeTree.toString());
+            System.out.println(scopeTree.toString());
             printSymbolTable(programNo);
         } else {
             log("ERROR", "Semantic analysis failed with " + errorCount + " error(s) and " + warningCount + " warning(s)\n");
@@ -85,12 +87,12 @@ public class SemanticAnalyzer extends Component {
      * @param type specified type for assignment
      * @return true if types match
      */
-    private boolean typeCheck(Symbol symbol, String type, Node scopeParent) {
+    private boolean typeCheck(Symbol symbol, String type) {
         String sType = symbol.getType();
 
         // if the other side of the expression is an id
         if(type.length() == 1) {
-            Symbol other = table.lookup(type, scopeParent);
+            Symbol other = table.lookup(type, scopePointer);
             if(sType.equals(other.getType())) {
                 return true;
             }
@@ -107,7 +109,7 @@ public class SemanticAnalyzer extends Component {
     /**
      * Block ::== { StatementList }
      */
-    private void block(Node astParent, Node scopeParent) {
+    private void block(Node astParent) {
         // log debug message
         log("DEBUG", "Block");
 
@@ -123,7 +125,8 @@ public class SemanticAnalyzer extends Component {
             Node scopeRoot = new Node(Integer.toString(scope));
             scopeTree = new SyntaxTree(scopeRoot);
 
-            statementList(astRoot, scopeRoot);
+            scopePointer = scopeRoot;
+            statementList(astRoot);
         } else {
             // create new Block Node with parent and add to children list
             Node blockNode = new Node("Block", astParent);
@@ -131,19 +134,17 @@ public class SemanticAnalyzer extends Component {
 
             // increase scope counter, create new scope Node with parent, and add to children list
             scope++;
-            Node scopeNode = new Node(Integer.toString(scope), scopeParent);
-            scopeParent.addChild(scopeNode);
+            Node scopeNode = new Node(Integer.toString(scope), scopePointer);
+            scopePointer.addChild(scopeNode);
 
-            statementList(blockNode, scopeNode);
-        }
-
-        // close scope
-        if(scopeParent != null && scopeParent.getParent() != null) {
-            scopeParent = scopeParent.getParent();
+            scopePointer = scopeNode;
+            statementList(blockNode);
         }
 
         match("}");
-        match("$");
+        // close scope
+        scopePointer = scopePointer.getParent();
+        
     }
 
     /**
@@ -152,7 +153,7 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private void statementList(Node astParent, Node scopeParent) {
+    private void statementList(Node astParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
@@ -165,8 +166,8 @@ public class SemanticAnalyzer extends Component {
                 currentKind == Kind.WHILE || 
                 currentKind == Kind.IF ||
                 currentKind == Kind.OPEN_BLOCK) {
-            statement(astParent, scopeParent);
-            statementList(astParent, scopeParent);
+            statement(astParent);
+            statementList(astParent);
         }
     }
 
@@ -180,16 +181,16 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private void statement(Node astParent, Node scopeParent) {
+    private void statement(Node astParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
         
         // PrintStatement
         if(currentKind == Kind.PRINT) {
-            printStatement(astParent, scopeParent);
+            printStatement(astParent);
         // AssignStatement
         } else if(currentKind == Kind.ID) {
-            assignmentStatement(astParent, scopeParent);
+            assignmentStatement(astParent);
         // VarDecl
         } else if(currentKind == Kind.TYPE_INT || 
                 currentKind == Kind.TYPE_STRING ||
@@ -197,20 +198,20 @@ public class SemanticAnalyzer extends Component {
             varDecl(astParent);
         // WhileStatement
         } else if(currentKind == Kind.WHILE) {
-            whileStatement(astParent, scopeParent);
+            whileStatement(astParent);
         // IfStatement
         } else if(currentKind == Kind.IF) {
-            ifStatement(astParent, scopeParent);
+            ifStatement(astParent);
         // Block
         } else if(currentKind == Kind.OPEN_BLOCK) {
-            block(astParent, scopeParent);
+            block(astParent);
         }
     }
 
     /**
      * PrintStatement ::== print ( Expr )
      */
-    private void printStatement(Node astParent, Node scopeParent) {
+    private void printStatement(Node astParent) {
         // log debug message
         log("DEBUG", "PrintStatement");
 
@@ -221,7 +222,7 @@ public class SemanticAnalyzer extends Component {
         match("print");
         match("(");
 
-        expr(printStatementNode, scopeParent);
+        expr(printStatementNode);
 
         match(")");
     }
@@ -229,7 +230,7 @@ public class SemanticAnalyzer extends Component {
     /**
      * AssignmentStatement ::== Id = Expr
      */
-    private void assignmentStatement(Node astParent, Node scopeParent) {
+    private void assignmentStatement(Node astParent) {
         // log debug message
         log("DEBUG", "AssignmentStatement");
 
@@ -241,13 +242,13 @@ public class SemanticAnalyzer extends Component {
 
         match("=");
 
-        String type = expr(assignStatementNode, scopeParent);
+        String type = expr(assignStatementNode);
 
         // check if symbol is declared in table at all
-        Symbol s = table.lookup(symbol, scopeParent);
+        Symbol s = table.lookup(symbol, scopePointer);
         if(s != null) {
             // perform type check
-            if(typeCheck(s, type, scopeParent)) {
+            if(typeCheck(s, type)) {
                 // symbol has now been initialized to a value
                 s.initialize();
             } else {
@@ -282,7 +283,7 @@ public class SemanticAnalyzer extends Component {
     /**
      * WhileStatement ::== while BooleanExpr Block
      */
-    private void whileStatement(Node astParent, Node scopeParent) {
+    private void whileStatement(Node astParent) {
         // log debug message
         log("DEBUG", "WhileStatement");
 
@@ -292,14 +293,14 @@ public class SemanticAnalyzer extends Component {
 
         match("while");
 
-        booleanExpr(whileStatementNode, scopeParent);
-        block(whileStatementNode, scopeParent);
+        booleanExpr(whileStatementNode);
+        block(whileStatementNode);
     }
 
     /**
      * IfStatement ::== if BooleanExpr Block
      */
-    private void ifStatement(Node astParent, Node scopeParent) {
+    private void ifStatement(Node astParent) {
         // log debug message
         log("DEBUG", "IfStatement");
 
@@ -309,8 +310,8 @@ public class SemanticAnalyzer extends Component {
 
         match("if");
 
-        booleanExpr(ifStatementNode, scopeParent);
-        block(ifStatementNode, scopeParent);
+        booleanExpr(ifStatementNode);
+        block(ifStatementNode);
     }
 
     /**
@@ -321,12 +322,12 @@ public class SemanticAnalyzer extends Component {
      * 
      * no Node added to AST
      */
-    private String expr(Node astParent, Node scopeParent) {
+    private String expr(Node astParent) {
         // peek at current Token for Kind checking
         Kind currentKind = peek().getKind();
 
         if(currentKind == Kind.DIGIT) {
-            intExpr(astParent, scopeParent);
+            intExpr(astParent);
             return "int";
         } else if(currentKind == Kind.QUOTE) {
             stringExpr(astParent);
@@ -334,12 +335,12 @@ public class SemanticAnalyzer extends Component {
         } else if(currentKind == Kind.OPEN_PAREN ||
                     currentKind == Kind.FALSE ||
                     currentKind == Kind.TRUE) {
-            booleanExpr(astParent, scopeParent);
+            booleanExpr(astParent);
             return "boolean";
         } else if(currentKind == Kind.ID) {
             String s = id(astParent);
             // mark id as used
-            Symbol symbol = table.lookup(s, scopeParent);
+            Symbol symbol = table.lookup(s, scopePointer);
             if(symbol != null) {
                 symbol.use();
             } else {
@@ -356,7 +357,7 @@ public class SemanticAnalyzer extends Component {
      * IntExpr ::== digit intop Expr
      *         ::== digit
      */
-    private void intExpr(Node astParent, Node scopeParent) {
+    private void intExpr(Node astParent) {
         // log debug message
         log("DEBUG", "IntExpr");
         
@@ -368,7 +369,7 @@ public class SemanticAnalyzer extends Component {
 
         if(currentKind == Kind.ADD_OP) {
             intOp(astParent);
-            expr(astParent, scopeParent);
+            expr(astParent);
         }
     }
 
@@ -390,7 +391,7 @@ public class SemanticAnalyzer extends Component {
      * BooleanExpr ::== ( Expr boolop Expr )
      *             ::== boolval
      */
-    private void booleanExpr(Node astParent, Node scopeParent) {
+    private void booleanExpr(Node astParent) {
         // log debug message
         log("DEBUG", "BooleanExpr");
 
@@ -402,9 +403,9 @@ public class SemanticAnalyzer extends Component {
         } else {
             match("(");
 
-            expr(astParent, scopeParent);
+            expr(astParent);
             boolOp(astParent);
-            expr(astParent, scopeParent);
+            expr(astParent);
 
             match(")");
         }

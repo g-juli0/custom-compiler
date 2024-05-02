@@ -21,7 +21,7 @@ public class SyntaxTree {
     /**
      * returns depth of Node n
      * @param n start Node
-     * @return depth of Node in CST
+     * @return depth of Node in SyntaxTree
      */
     public int getDepth(Node n) {
         int depth = 0;

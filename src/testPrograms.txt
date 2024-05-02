@@ -142,4 +142,5 @@ s = "this string is /* in */ visible"
   {}{{}}
   print(a)
  }
+ print(a)
 }$

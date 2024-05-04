@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /**
@@ -17,6 +18,7 @@ public class CodeGenerator extends Component {
 
     // array of strings (can also store temp values), size 256 MAX (bytes)
     private ArrayList<String> executableImage;
+    private String opcodes;
 
     // static table to hold temp addresses
     private VariableTable varTable;
@@ -34,10 +36,10 @@ public class CodeGenerator extends Component {
         jumpTable = new JumpTable();
 
         byteCount = 0;
-        endOfHeap = 0;
+        endOfHeap = 255;
 
+        opcodes = "";
         executableImage = new ArrayList<>(256);
-        initialize();
 
         log("INFO", "Generating code for program " + Integer.toString(programNo) + "...");
 
@@ -45,17 +47,20 @@ public class CodeGenerator extends Component {
 
         if(success()) {
             log("INFO", "Code generation completed with 0 error(s) and 0 warning(s)\n");
+            System.out.println(varTable.toString());
+            System.out.println(jumpTable.toString());
             printExecutableImage(programNo);
         } else {
+            log("ERROR", "Generated image exceeds maximum storage (256 bytes)\n");
             log("ERROR", "Code generation failed with 1 error(s) and 0 warning(s)\n");
         }
     }
 
     /**
-     * initialize all bytes in the execution environment to "00"
+     * fill all empty space in the execution environment with "00"
      */
-    private void initialize() {
-        for(int i = 0; i < 256; i++) {
+    private void fill() {
+        while(executableImage.size() < 256) {
             executableImage.add("00");
         }
     }
@@ -72,11 +77,11 @@ public class CodeGenerator extends Component {
         depthFirstTraversal(children, scopeRoot);
 
         // halt the program (BRK = 00)
-        executableImage.set(byteCount, "00");
+        opcodes += "00";
         byteCount++;
 
-        // calculate address indexes
-        // replace temporary addresses with real addresses (backpatching)
+        // calculate real addresses and replace temporary addresses (backpatching)
+        calculateRealAddresses();
         // replace temporary jump values with actual values (^^^)
 
         // string values at end of heap
@@ -92,20 +97,30 @@ public class CodeGenerator extends Component {
                 ArrayList<Node> grandchildren = child.getChildren();
                 
                 if(val.equals("PrintStatement")) {
-                    //
+                    // get item to be printed
+                    String toPrint = grandchildren.get(0).getValue();
+
+                    if(Pattern.matches("[a-z]", toPrint)) {
+                        // print contents of id
+                        //print(varTable.lookup(toPrint, Integer.parseInt(scope.getValue())).getTempAddress());
+                    } else if (Pattern.matches("true|false", toPrint)) {
+                        // print 0 or 1
+                    } else {
+                        // print string
+                    }
+
                 } else if(val.equals("IfStatement")) {
                     //
                 } else if (val.equals("WhileStatement")) {
                     //
                 } else if (val.equals("VarDecl")) {
-                    String type = grandchildren.get(0).getValue();
-                    if(Pattern.matches("int|string|boolean", type)) {
-                        // initialize variable with id name and scope
-                        String id = grandchildren.get(1).getValue();
-                        int s = Integer.parseInt(scope.getValue());
-                        varTable.addEntry(id, s);
-                        initializeVar(id, s);
-                    }
+                    // initialize variable with id name and scope
+                    String id = grandchildren.get(1).getValue();
+                    int s = Integer.parseInt(scope.getValue());
+
+                    varTable.addEntry(id, s);
+                    generateVarDecl(id, s);
+
                 } else if (val.equals("AssignmentStatement")) {
                     //
                 } else { 
@@ -120,13 +135,21 @@ public class CodeGenerator extends Component {
         }
     }
 
-    private void initializeVar(String id, int scope) {
-        executableImage.set(byteCount++, "A9"); // load accumulator
-        executableImage.set(byteCount++, "00"); // with constant (default value = 00)
+    /**
+     * load accumulator with default value
+     * @param id
+     * @param scope
+     */
+    private void generateVarDecl(String id, int scope) {
+        log("DEBUG", "initialize variable");
 
-        executableImage.set(byteCount++, "8D");                                          // store accumulator contents
-        executableImage.set(byteCount++, varTable.lookup(id, scope).getTempAddress());   // at specified address
-        executableImage.set(byteCount++, "XX");                                          // in little endian format
+        opcodes += "A9"; // load accumulator
+        opcodes += "00"; // with constant (default value = 00)
+
+        opcodes += "8D"; // store accumulator contents at specified address in little endian format
+        opcodes += varTable.lookup(id, scope).getTempAddress();
+
+        byteCount += 5;
     }
 
     private void assignInt(String id, int digit, int scope) {
@@ -176,13 +199,25 @@ public class CodeGenerator extends Component {
         System.out.println(output.toString());
     }
 
+    private void calculateRealAddresses() {
+        for(VariableEntry entry : varTable.getTable()) {
+            // replace all temp addresses with next available byte address
+            opcodes = opcodes.replaceAll(entry.getTempAddress(), String.format("%1$02X00", byteCount++));
+        }
+
+        opcodes = opcodes.replaceAll("..(?!$)", "$0 ");
+        System.out.println(opcodes);
+        executableImage = new ArrayList<>(Arrays.asList(opcodes.split(" ")));
+        fill();
+    }
+
     /**
      * determines if code generation completed without errors
      * @return true if no errors
      */
     public boolean success() {
         // only error occurs if image exceeds maximum storage (256 bytes)
-        return executableImage.size() <= 256;
+        return executableImage.size() <= 256 || byteCount >= endOfHeap;
     }
 
     /**

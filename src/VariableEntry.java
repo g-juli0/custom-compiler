@@ -9,7 +9,7 @@ public class VariableEntry {
     private int offset;
 
     public VariableEntry(String id, int numEntries, int scope) {
-        tempAddress = "T" + numEntries;
+        tempAddress = "T" + numEntries + "XX";
         this.id = id;
         this.scope = scope;
         offset = numEntries;

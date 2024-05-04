@@ -277,7 +277,7 @@ public class SemanticAnalyzer extends Component {
         String type = type(varDeclNode);
         String id = id(varDeclNode);
 
-        table.addSymbol(new Symbol(id, type, scope, false, false));
+        table.addSymbol(new Symbol(id, type, scopePointer, false, false));
     }
 
     /**
@@ -345,7 +345,7 @@ public class SemanticAnalyzer extends Component {
                 symbol.use();
             } else {
                 // not in symbol table 
-                log("ERROR", "Variable not declared. Symbol " + symbol + " not found in symbol table.");
+                log("ERROR", "Variable not declared. Symbol " + s + " not found in symbol table within the current scope.");
                 errorCount++;
             }
             return s;
@@ -637,6 +637,14 @@ public class SemanticAnalyzer extends Component {
         System.out.println("Program " + programNo + " Scope Tree");
         System.out.println("------------------------------------");
         System.out.println(scopeTree.toString());
+    }
+
+    /**
+     * getter for scope tree
+     * @return
+     */
+    public SyntaxTree getScopeTree() {
+        return scopeTree;
     }
 
     /**

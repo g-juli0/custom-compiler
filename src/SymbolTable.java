@@ -25,7 +25,7 @@ public class SymbolTable {
             for (Symbol s : symbols) {
                 // if id name is the same and if scope value is the same
                 //System.out.println(id + ", " + scope.getValue());
-                if(s.getName().equals(id) && Integer.toString(s.getScope()).equals(temp.getValue())) {
+                if(s.getName().equals(id) && s.getScope().getValue().equals(temp.getValue())) {
                     return s;
                 }
             }
@@ -51,18 +51,23 @@ public class SymbolTable {
         table.append("+------+---------+-------+--------+--------+\n");
 
         for(Symbol s : symbols) {
+            // name
             table.append("| " + s.getName() + "    | ");
 
+            // type
             String type = s.getType();
             table.append(type);
             int spaces = 8 - type.length();
 
+            // buffer for type
             for (int i = 0; i < spaces; i++) {
                 table.append(" ");
             }
 
-            table.append("| " + s.getScope() + "     | ");
+            // scope
+            table.append("| " + s.getScope().getValue() + "     | ");
 
+            // isInit
             boolean init = s.getIsInit();
             table.append(init + "  ");
             if(init) {
@@ -70,6 +75,7 @@ public class SymbolTable {
             }
             table.append("| ");
 
+            // isUsed
             boolean used = s.getIsUsed();
             table.append(used + "  ");
             if(used) {
@@ -78,6 +84,7 @@ public class SymbolTable {
             table.append("|\n");
         }
 
+        // close table
         table.append("+------+---------+-------+--------+--------+\n");
 
         return table.toString();

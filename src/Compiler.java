@@ -34,7 +34,7 @@ public class Compiler {
 
                         if(analyzer.success()) {
                             // generate opcode
-                            CodeGenerator generator = new CodeGenerator(analyzer.getAST(), analyzer.getSymbolTable(), programNo);
+                            CodeGenerator generator = new CodeGenerator(analyzer.getAST(), analyzer.getSymbolTable(), analyzer.getScopeTree(), programNo);
 
                             if(generator.success()) {
                                 System.out.println("INFO - Program " + programNo + " successfully compiled.\n");

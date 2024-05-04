@@ -7,7 +7,7 @@ public class Symbol {
 
     private String name;
     private String type;
-    private int scope;
+    private Node scope;
     private boolean isInit;
     private boolean isUsed;
     // value, line, pos
@@ -20,7 +20,7 @@ public class Symbol {
      * @param isInit true if variable was initialized
      * @param isUsed true if variable is used in code
      */
-    public Symbol(String name, String type, int scope, boolean isInit, boolean isUsed) {
+    public Symbol(String name, String type, Node scope, boolean isInit, boolean isUsed) {
         this.name = name;
         this.type = type;
         this.scope = scope;
@@ -48,7 +48,7 @@ public class Symbol {
      * getter for Symbol scope
      * @return scope in which variable was declared
      */
-    public int getScope() {
+    public Node getScope() {
         return scope;
     }
 

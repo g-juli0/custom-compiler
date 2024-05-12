@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Pattern;
+import java.util.HashMap;
 
 /**
  * Code Generator phase of Compiler
@@ -26,6 +27,8 @@ public class CodeGenerator extends Component {
     // jump distance table
     private JumpTable jumpTable;
 
+    private String storedStrings;
+
     public CodeGenerator(SyntaxTree ast, SymbolTable t, SyntaxTree scope, int programNo) {
         // initialize flags and variables
         AST = ast;
@@ -37,6 +40,8 @@ public class CodeGenerator extends Component {
 
         byteCount = 0;
         endOfHeap = 255;
+
+        storedStrings = "";
 
         opcodes = "";
         executableImage = new ArrayList<>(256);
@@ -73,8 +78,9 @@ public class CodeGenerator extends Component {
         Node astRoot = ast.getRoot();
         ArrayList<Node> children = astRoot.getChildren();
 
+        // should just be 0, but save root as local variable for later scope checking
         Node scopeRoot = scopeTree.getRoot();
-        depthFirstTraversal(children, scopeRoot);
+        depthFirstTraversal(children, Integer.parseInt(scopeRoot.getValue()));
 
         // halt the program (BRK = 00)
         opcodes += "00";
@@ -82,12 +88,19 @@ public class CodeGenerator extends Component {
 
         // calculate real addresses and replace temporary addresses (backpatching)
         calculateRealAddresses();
+
         // replace temporary jump values with actual values (^^^)
+        calculateJumpAddresses();
+
+        opcodes = opcodes.replaceAll("..(?!$)", "$0 ");
+        executableImage = new ArrayList<>(Arrays.asList(opcodes.split(" ")));
+
+        fill();
 
         // string values at end of heap
     }
 
-    private void depthFirstTraversal(ArrayList<Node> children, Node scope) {
+    private void depthFirstTraversal(ArrayList<Node> children, int scope) {
 
         for(Node child : children) {
             String val = child.getValue();
@@ -102,30 +115,48 @@ public class CodeGenerator extends Component {
 
                     if(Pattern.matches("[a-z]", toPrint)) {
                         // print contents of id
-                        //print(varTable.lookup(toPrint, Integer.parseInt(scope.getValue())).getTempAddress());
+                        // print(varTable.lookup(toPrint, scope).getTempAddress());
                     } else if (Pattern.matches("true|false", toPrint)) {
-                        // print 0 or 1
+                        // print("true" or "false");
                     } else {
                         // print string
                     }
 
                 } else if(val.equals("IfStatement")) {
-                    //
+                    // compare(val1, val2, comparator)
                 } else if (val.equals("WhileStatement")) {
-                    //
+                    // compare(val1, val2, comparator)
                 } else if (val.equals("VarDecl")) {
                     // initialize variable with id name and scope
                     String id = grandchildren.get(1).getValue();
-                    int s = Integer.parseInt(scope.getValue());
 
-                    varTable.addEntry(id, s);
-                    generateVarDecl(id, s);
+                    varTable.addEntry(id, scope);
+                    generateVarDecl(id, scope);
 
                 } else if (val.equals("AssignmentStatement")) {
-                    //
+                    // checks if the id is being assigned to an expr
+                    if(grandchildren.size() > 2 && grandchildren.get(2).getValue().equals("+")) {
+                        // increment id
+                        // either index 1 or index 3 is the id, the other is the digit
+                    } else {
+                        // get id, value to be assigned, and find type of new value
+                        // type checking has already occured, so type is only used to determine which
+                        // method of assignment is used
+                        String id = grandchildren.get(0).getValue();
+                        String newValue = grandchildren.get(1).getValue();
+                        String newValueType = getType(newValue);
+
+                        switch (newValueType) {
+                            case "int": assignInt(id, Integer.parseInt(newValue), scope); break;
+                            case "boolean": assignBoolean(id, Boolean.parseBoolean(newValue), scope); break;
+                            case "string": assignString(id, newValue, scope); break;
+                            default: log("ERROR", "If you are reading this message something is very broken."); break;
+                        }
+                    }
+
                 } else { 
                     // Block
-                    depthFirstTraversal(grandchildren, scope);
+                    depthFirstTraversal(grandchildren, scope++);
                 }
                 
             // leaf node
@@ -141,7 +172,7 @@ public class CodeGenerator extends Component {
      * @param scope
      */
     private void generateVarDecl(String id, int scope) {
-        log("DEBUG", "initialize variable");
+        log("DEBUG", "generating code to initialize variable " + id + " at scope " + scope);
 
         opcodes += "A9"; // load accumulator
         opcodes += "00"; // with constant (default value = 00)
@@ -149,16 +180,18 @@ public class CodeGenerator extends Component {
         opcodes += "8D"; // store accumulator contents at specified address in little endian format
         opcodes += varTable.lookup(id, scope).getTempAddress();
 
-        byteCount += 5;
+        byteCount += 5; // increment byte count with # of bytes used for above opcodes
     }
 
     private void assignInt(String id, int digit, int scope) {
-        executableImage.set(byteCount++, "A9");      // load accumulator
-        executableImage.set(byteCount++, "0"+digit); // with specified digit
+        opcodes += "A9";        // load accumulator
+        opcodes += "0" + digit; // with specified digit
 
-        executableImage.set(byteCount++, "8D"); // store accumulator contents
-        executableImage.set(byteCount++, "TX"); // at specified address
-        executableImage.set(byteCount++, "XX"); // in little endian format
+        opcodes += "8D"; // store accumulator contents at specified address in little endian format
+
+        opcodes += varTable.lookup(id, scope).getTempAddress(); // find temp address and add it to opcodes
+
+        byteCount += 5; // increment byte count with # of bytes used for above opcodes
     }
 
     private void assignBoolean(String id, boolean value, int scope) {
@@ -204,11 +237,12 @@ public class CodeGenerator extends Component {
             // replace all temp addresses with next available byte address
             opcodes = opcodes.replaceAll(entry.getTempAddress(), String.format("%1$02X00", byteCount++));
         }
+    }
 
-        opcodes = opcodes.replaceAll("..(?!$)", "$0 ");
-        System.out.println(opcodes);
-        executableImage = new ArrayList<>(Arrays.asList(opcodes.split(" ")));
-        fill();
+    private void calculateJumpAddresses() {
+        jumpTable.getTable().forEach((key, value) -> {
+            opcodes = opcodes.replaceAll(key, String.format("%1$02X00", value));
+        });
     }
 
     /**

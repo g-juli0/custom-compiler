@@ -32,19 +32,18 @@ public class VariableTable {
         StringBuilder table = new StringBuilder("");
 
         // build header
-        table.append("+------+----+-------+--------+\n");
-        table.append("| addr | id | scope | offset |\n");
-        table.append("+------+----+-------+--------+\n");
+        table.append("+------+----+-------+\n");
+        table.append("| addr | id | scope |\n");
+        table.append("+------+----+-------+\n");
 
         // append entries
         for(VariableEntry entry : entries) {
             table.append("| " + entry.getTempAddress() + " ");
             table.append("| " + entry.getId() + "  ");
-            table.append("| " + entry.getScope() + "     ");
-            table.append("| " + entry.getOffset() + "      |\n");
+            table.append("| " + entry.getScope() + "     |\n");
         }
         // close table
-        table.append("+------+----+-------+--------+\n");
+        table.append("+------+----+-------+\n");
 
         return table.toString();
     }

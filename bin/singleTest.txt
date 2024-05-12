@@ -1,22 +1,17 @@
 /*Long Test Case - Everything Except Boolean Declaration */
 {
-    /* Int Declaration */
     int a
     int b
+    string c
     a = 0
-    b=0
-    /* While Loop */
+    b = 0
+    c = "there is no spoon"
     while (a != 3) {
         print(a)
-        while (b != 3) {
-            print(b)
-            b = 1 + b
-            if (b == 2) {
-                /* Print Statement */
-                print("there is no spoon" /* This will do nothing */ )
-            }
+        b = 1 + b
+        if (b == 2) {
+            print(c)
         }
-        b = 0
         a = 1+a
     }
 }

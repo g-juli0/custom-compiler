@@ -1,3 +1,5 @@
+import java.util.regex.Pattern;
+
 /**
  * Parent class for all compiler components
  * contains master debug switch, log function, and type check methods
@@ -96,6 +98,15 @@ public class Component {
             case "false": return Kind.FALSE;
             default: return Kind.ERROR;
         }
+    }
+
+    public String getType(String test) {
+        if(Pattern.matches("\\d", test)) {
+            return "int";
+        } else if (Pattern.matches("true|false", test)) {
+            return "boolean";
+        }
+        return "string";
     }
 
     /**

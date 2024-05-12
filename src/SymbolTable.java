@@ -35,6 +35,19 @@ public class SymbolTable {
         return null;
     }
 
+    public Symbol lookup(String id, String type) {
+        // if not found, look up in parent scopes{
+        for (Symbol s : symbols) {
+            // if id name is the same and if scope value is the same
+            //System.out.println(id + ", " + scope.getValue());
+            if(s.getName().equals(id) && s.getType().equals(type)) {
+                return s;
+            }
+        }
+        // not found
+        return null;
+    }
+
     public ArrayList<SymbolTable> getChildren() {
         return children;
     }

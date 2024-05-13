@@ -4,17 +4,17 @@ import java.util.HashMap;
 public class JumpTable {
 
     // temp address mapped to distance
-    private HashMap<String, Integer> table;
+    private HashMap<String, String> table;
 
     public JumpTable() {
         table = new HashMap<>();
     }
 
-    public void addEntry(String key, int value) {
-        table.put(key, Integer.valueOf(value));
+    public void addEntry(String key, String value) {
+        table.put(key, value);
     }
 
-    public HashMap<String, Integer> getTable() {
+    public HashMap<String, String> getTable() {
         return table;
     }
 
@@ -28,7 +28,7 @@ public class JumpTable {
 
         // append entries
         table.forEach((key, value) -> {
-            output.append("| " + key + " | " + value + "    |\n");
+            output.append("| " + key + " |  " + value + "  |\n");
         });
 
         // close table

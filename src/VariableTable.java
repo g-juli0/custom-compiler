@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 
-
-
 public class VariableTable {
     
     private ArrayList<VariableEntry> entries;

@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
  */
 public class CodeGenerator extends Component {
 
+    private int warningCount;
+
     private int byteCount;      // number of bytes used
     private int endOfHeap;      // undex of byte marking the end of the heap
 
@@ -30,6 +32,8 @@ public class CodeGenerator extends Component {
 
     public CodeGenerator(SyntaxTree ast, SymbolTable t, SyntaxTree scope, int programNo) {
         // initialize flags and variables
+        warningCount = 0;
+
         AST = ast;
         symbolTable = t;
         scopeTree = scope;
@@ -52,13 +56,13 @@ public class CodeGenerator extends Component {
         generate(AST);
 
         if(success()) {
-            log("INFO", "Code generation completed with 0 error(s) and 0 warning(s)\n");
+            log("INFO", "Code generation completed with 0 error(s) and " + warningCount + " warning(s)\n");
             System.out.println(varTable.toString());
             System.out.println(jumpTable.toString());
             printExecutableImage(programNo);
         } else {
             log("ERROR", "Generated image exceeds maximum storage (256 bytes)\n");
-            log("ERROR", "Code generation failed with 1 error(s) and 0 warning(s)\n");
+            log("ERROR", "Code generation failed with 1 error(s) and " + warningCount + " warning(s)\n");
         }
     }
 
@@ -99,11 +103,18 @@ public class CodeGenerator extends Component {
         // add string values at end of heap
         opcodes = opcodes.substring(0, (endOfHeap-1)*2) + storedStrings;
 
+        fill();
+        
         // separate and split into array for easier formatted printing and checking
         opcodes = opcodes.replaceAll("..(?!$)", "$0 ");
         executableImage = new ArrayList<>(Arrays.asList(opcodes.split(" ")));
     }
 
+    /**
+     * performs depth-first in-order traversal on AST to generate opcodes
+     * @param children children to traverse
+     * @param scope current scope to lookup ids
+     */
     private void depthFirstTraversal(ArrayList<Node> children, int scope) {
 
         for(Node child : children) {
@@ -159,10 +170,60 @@ public class CodeGenerator extends Component {
 
                 } else if(val.equals("IfStatement")) {
                     log("DEBUG", "generating code for if statement");
-                    // compare(val1, val2, comparator)
+                    if(grandchildren.size() > 2) { // value, comparator, value, block
+                        int bytesBefore = byteCount;
+                        compare(grandchildren.get(0), grandchildren.get(2), grandchildren.get(1).getValue().equals("=="));
+                        
+                        String jump = "J"+jumpTable.getTable().size();
+                        opcodes += jump;
+                        byteCount++;
+
+                        jumpTable.addEntry(jump, Integer.toHexString(byteCount-bytesBefore).toUpperCase());
+                    } else { // value, block
+                        // boolean value
+                        boolean bool = Boolean.parseBoolean(grandchildren.get(0).getValue());
+
+                        if(bool) {
+                            // always true
+                            opcodes += "A201ECFF00D000";
+                            byteCount += 8;
+                            depthFirstTraversal(grandchildren.get(4).getChildren(), scope++);
+
+                        } else {
+                            // otherwise, dead code
+                            log("WARNING", "Dead code detected. Code block within if statement will not be executed.");
+                            warningCount++;
+                        }
+                    }
                 } else if (val.equals("WhileStatement")) {
                     log("DEBUG", "generating code for while statement");
-                    // compare(val1, val2, comparator)
+                    if(grandchildren.size() > 2) { // value, comparator, value, block
+                        compare(grandchildren.get(0), grandchildren.get(2), grandchildren.get(1).getValue().equals("=="));
+                    } else { // value, block
+                        // boolean value
+                        boolean bool = Boolean.parseBoolean(grandchildren.get(0).getValue());
+
+                        if(bool) {
+                            // always true
+                            log("WARNING", "Infinite loop detected. Run generated image with caution.");
+                            warningCount++;
+
+                            opcodes += "A201ECFF00D0J" + jumpTable.getTable().size() + "XX";
+
+                            int bytesBefore = byteCount;
+                            byteCount += 8;
+                            
+                            depthFirstTraversal(grandchildren.get(4).getChildren(), scope++);
+                            int difference = byteCount - bytesBefore;
+
+                            jumpTable.addEntry("J"+jumpTable.getTable().size(), Integer.toHexString(difference).toUpperCase());
+
+                        } else {
+                            // otherwise, dead code
+                            log("WARNING", "Dead code detected. Code block within while loop will not be executed.");
+                            warningCount++;
+                        }
+                    }
                 } else if (val.equals("VarDecl")) {
                     // initialize variable with id name and scope
                     String type = grandchildren.get(0).getValue();
@@ -212,6 +273,70 @@ public class CodeGenerator extends Component {
             } // leaf node
         }
     }
+
+    /**
+     * comparison between left and right nodes
+     * @param left left node
+     * @param right right node
+     * @param equal true if comparator is "==", false if comparator is "!="
+     */
+    private void compare(Node left, Node right, boolean equal){
+        String compareEqual = "";
+        boolean firstPass = true;
+        Node[] nodes = {left, right};
+        char c = 'A';
+    
+        for(Node n : nodes) {
+          c++;
+    
+          // Compare integers
+          if (Pattern.matches("\\d+", n.getValue())) {
+            if(firstPass) {
+              compareEqual += "A2";
+            }
+            compareEqual += String.format("%02X", Integer.parseInt(n.getValue()));
+    
+            // Compare strings
+          } /*else if (Pattern.matches("\\[[a-z]*]", n.getValue())) {
+            if(firstPass) {
+              compareEqual += "AE";
+            }
+            initializeVar(c, AST.getDepth(n)-1);
+            assignString(c, n.getValue(), AST.getDepth(n)-1);
+            compareEqual += varTable.getTemp(c, AST.getDepth(n)-1);
+    
+            // Compare booleans
+          }*/ else if (Pattern.matches("true|false", n.getValue())) {
+            if(firstPass) {
+              compareEqual += "A2";
+            }
+            int bool = 0;
+            if(n.getValue().equals("true")) {
+              bool = 1;
+            }
+    
+            compareEqual += String.format("%02X", bool);
+    
+            // Compare variables
+          } /*else if (Pattern.matches("[a-z]", n.getValue())) {
+            if(firstPass) {
+              compareEqual += "AE";
+            }
+            compareEqual += varTable.lookup(n.getValue(), AST.getDepth(n)).getTempAddress();
+          } */
+          if(firstPass) {
+            compareEqual += "EC";
+          }
+          firstPass = false;
+        }
+        compareEqual += "D0";
+        if(!equal) {
+          compareEqual += "20";
+        }
+    
+        byteCount += compareEqual.length() / 2;
+        opcodes += compareEqual;
+      }
 
     /**
      * assigns given int value to specified variable
@@ -314,7 +439,7 @@ public class CodeGenerator extends Component {
      */
     private void calculateJumpAddresses() {
         jumpTable.getTable().forEach((key, value) -> {
-            opcodes = opcodes.replaceAll(key, String.format("%02X", value));
+            opcodes = opcodes.replaceAll(key, value);
         });
     }
 

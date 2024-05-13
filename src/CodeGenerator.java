@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Pattern;
-import java.util.HashMap;
 
 /**
  * Code Generator phase of Compiler
@@ -39,15 +38,17 @@ public class CodeGenerator extends Component {
         jumpTable = new JumpTable();
 
         byteCount = 0;
-        endOfHeap = 255;
-
-        storedStrings = "";
+        
+        // strings "true" and "false" stored in heap
+        endOfHeap = 244;
+        storedStrings = convertToASCII("false") + convertToASCII("true");
 
         opcodes = "";
         executableImage = new ArrayList<>(256);
 
         log("INFO", "Generating code for program " + Integer.toString(programNo) + "...");
 
+        // begin code generation
         generate(AST);
 
         if(success()) {
@@ -65,7 +66,7 @@ public class CodeGenerator extends Component {
      * fill all empty space in the execution environment with "00"
      */
     private void fill() {
-        while(opcodes.length() <= 256*2) {
+        while(opcodes.length()/2 < 256) {
             opcodes += "00";
         }
     }
@@ -92,11 +93,13 @@ public class CodeGenerator extends Component {
         // replace temporary jump values with actual values (^^^)
         calculateJumpAddresses();
 
+        // fill remaining bytes with 00s
         fill();
 
-        // string values at end of heap
-        opcodes = opcodes.substring(0, (endOfHeap+1)*2) + storedStrings;
+        // add string values at end of heap
+        opcodes = opcodes.substring(0, (endOfHeap-1)*2) + storedStrings;
 
+        // separate and split into array for easier formatted printing and checking
         opcodes = opcodes.replaceAll("..(?!$)", "$0 ");
         executableImage = new ArrayList<>(Arrays.asList(opcodes.split(" ")));
     }
@@ -111,21 +114,54 @@ public class CodeGenerator extends Component {
                 ArrayList<Node> grandchildren = child.getChildren();
                 
                 if(val.equals("PrintStatement")) {
+                    log("DEBUG", "generating code for print statement");
                     // get item to be printed
                     String toPrint = grandchildren.get(0).getValue();
 
                     if(Pattern.matches("[a-z]", toPrint)) {
                         // print contents of id
-                        // print(varTable.lookup(toPrint, scope).getTempAddress());
-                    } else if (Pattern.matches("true|false", toPrint)) {
-                        // print("true" or "false");
+                        opcodes += "AC"; // load Y reg with temp address
+                        opcodes += varTable.lookup(toPrint, scope).getTempAddress();
+
+                        if(symbolTable.lookup(toPrint, "string") != null) {
+                            opcodes += "A202FF"; // load X reg with const "02" and print (string)
+                        } else {
+                            opcodes += "A201FF"; // load X reg with const "01" and print (int or bool)
+                        }
+                        byteCount += 6;
+                    } else if (Pattern.matches("[0-9]", toPrint)) {
+                        // print const digit
+                        // load Y reg with const digit, load X reg with const "01", and print
+                        opcodes += "A00" + Integer.toHexString(Integer.parseInt(toPrint)).toUpperCase() + "A201FF";
+                        byteCount += 5;
+                    } else if (Pattern.matches("true", toPrint)) {
+                        // print "true" (stored at 0xFB)
+                        // load Y reg with address FB 00, load X reg with const "02", and print
+                        opcodes += "ACFB00A202FF";
+                        byteCount += 6;
+                    } else if (Pattern.matches("false", toPrint)) {
+                        // print "false" (stored at 0xF5)
+                        // load Y reg with address F5 00, load X reg with const "02", and print
+                        opcodes += "ACF500A202FF";
+                        byteCount += 6;
                     } else {
-                        // print string
+                        // print const string = add to heap, print from mem
+                        // add new string value onto front of heap (heap works from bottom up)
+                        endOfHeap -= (toPrint.length()-1);
+                        storedStrings = convertToASCII(toPrint) + storedStrings;
+
+                        // load Y reg with new string location pointer, load X red with const "02", and print
+                        opcodes += "AC";
+                        opcodes += Integer.toHexString(endOfHeap-1).toUpperCase();
+                        opcodes += "A202FF";
+                        byteCount += 5;
                     }
 
                 } else if(val.equals("IfStatement")) {
+                    log("DEBUG", "generating code for if statement");
                     // compare(val1, val2, comparator)
                 } else if (val.equals("WhileStatement")) {
+                    log("DEBUG", "generating code for while statement");
                     // compare(val1, val2, comparator)
                 } else if (val.equals("VarDecl")) {
                     // initialize variable with id name and scope
@@ -148,6 +184,7 @@ public class CodeGenerator extends Component {
                     }
 
                 } else if (val.equals("AssignmentStatement")) {
+                    log("DEBUG", "generating code for assignment statement");
                     // checks if the id is being assigned to an expr
                     if(grandchildren.size() > 2 && grandchildren.get(2).getValue().equals("+")) {
                         // increment id
@@ -172,14 +209,16 @@ public class CodeGenerator extends Component {
                     // Block
                     depthFirstTraversal(grandchildren, scope++);
                 }
-                
-            // leaf node
-            } else {
-                // im not sure
-            }
+            } // leaf node
         }
     }
 
+    /**
+     * assigns given int value to specified variable
+     * @param id name of id that value will be assigned to
+     * @param str int value that will be assigned to id
+     * @param scope scope of id for lookup
+     */
     private void assignInt(String id, int digit, int scope) {
         opcodes += "A9";        // load accumulator
         opcodes += "0" + digit; // with specified digit
@@ -191,6 +230,12 @@ public class CodeGenerator extends Component {
         byteCount += 5; // increment byte count with # of bytes used for above opcodes
     }
 
+    /**
+     * assigns given boolean value to specified variable
+     * @param id name of id that value will be assigned to
+     * @param str boolean value that will be assigned to id
+     * @param scope scope of id for lookup
+     */
     private void assignBoolean(String id, boolean value, int scope) {
         opcodes += "A9"; // load accumulator
 
@@ -203,23 +248,33 @@ public class CodeGenerator extends Component {
         opcodes += "8D"; // store accumulator contents
         opcodes += varTable.lookup(id, scope).getTempAddress(); // find temp address and add it to opcodes
 
+        // increment bytes used
         byteCount += 5;
     }
 
+    /**
+     * assigns given string value to specified variable
+     * @param id name of id that value will be assigned to
+     * @param str String value that will be assigned to id
+     * @param scope scope of id for lookup
+     */
     private void assignString(String id, String str, int scope) {
         opcodes += "A9"; // load accumulator
 
         if(!str.isEmpty()) {
             // add new string value onto front of heap (heap works from bottom up)
-            endOfHeap -= str.length() + 1;
+            endOfHeap -= (str.length()-1);
             storedStrings = convertToASCII(str) + storedStrings;
+            opcodes += Integer.toHexString(endOfHeap-1).toUpperCase();
+        } else {             // if string is empty (either default value for vardecl or just assigned an empty string),
+            opcodes += "FF"; // point to the last byte, which is always a "00" since it terminates the heap
         }
 
-        opcodes += Integer.toHexString(endOfHeap).toUpperCase();
         opcodes += "8D";
         opcodes += varTable.lookup(id, scope).getTempAddress(); // find temp address and add it to opcodes
 
-        byteCount += 4;
+        // increment bytes used
+        byteCount += 5;
     }
 
     /**
@@ -250,7 +305,7 @@ public class CodeGenerator extends Component {
     private void calculateRealAddresses() {
         for(VariableEntry entry : varTable.getTable()) {
             // replace all temp addresses with next available byte address
-            opcodes = opcodes.replaceAll(entry.getTempAddress(), String.format("%1$02X00", byteCount++));
+            opcodes = opcodes.replaceAll(entry.getTempAddress(), (String.format("%02X", byteCount++)+"00"));
         }
     }
 
@@ -259,7 +314,7 @@ public class CodeGenerator extends Component {
      */
     private void calculateJumpAddresses() {
         jumpTable.getTable().forEach((key, value) -> {
-            opcodes = opcodes.replaceAll(key, String.format("%1$02X", value));
+            opcodes = opcodes.replaceAll(key, String.format("%02X", value));
         });
     }
 
@@ -395,7 +450,7 @@ public class CodeGenerator extends Component {
      */
     public boolean success() {
         // only error occurs if image exceeds maximum storage (256 bytes)
-        return executableImage.size() <= 256 || byteCount >= endOfHeap;
+        return executableImage.size() <= 256;
     }
 
     /**

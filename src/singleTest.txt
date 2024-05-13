@@ -1,18 +1,13 @@
-/*Long Test Case - Everything Except Boolean Declaration */
 {
     int a
     int b
     string c
-    a = 0
-    b = 0
+    a = 1
+    b = 2
     c = "there is no spoon"
-    while (a != 3) {
-        print(a)
-        b = 1 + b
-        if (b == 2) {
-            print(c)
-        }
-        a = 1+a
-    }
+
+    print(a)
+    print(b)
+    print(c)
 }
 $

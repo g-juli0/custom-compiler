@@ -65,8 +65,8 @@ public class CodeGenerator extends Component {
      * fill all empty space in the execution environment with "00"
      */
     private void fill() {
-        while(executableImage.size() < 256) {
-            executableImage.add("00");
+        while(opcodes.length() <= 256*2) {
+            opcodes += "00";
         }
     }
 
@@ -92,12 +92,13 @@ public class CodeGenerator extends Component {
         // replace temporary jump values with actual values (^^^)
         calculateJumpAddresses();
 
-        opcodes = opcodes.replaceAll("..(?!$)", "$0 ");
-        executableImage = new ArrayList<>(Arrays.asList(opcodes.split(" ")));
-
         fill();
 
         // string values at end of heap
+        opcodes = opcodes.substring(0, (endOfHeap+1)*2) + storedStrings;
+
+        opcodes = opcodes.replaceAll("..(?!$)", "$0 ");
+        executableImage = new ArrayList<>(Arrays.asList(opcodes.split(" ")));
     }
 
     private void depthFirstTraversal(ArrayList<Node> children, int scope) {
@@ -128,7 +129,7 @@ public class CodeGenerator extends Component {
                     // compare(val1, val2, comparator)
                 } else if (val.equals("VarDecl")) {
                     // initialize variable with id name and scope
-                    String type = grandchildren.get(0);
+                    String type = grandchildren.get(0).getValue();
                     String id = grandchildren.get(1).getValue();
 
                     // add variable entry to table
@@ -208,11 +209,14 @@ public class CodeGenerator extends Component {
     private void assignString(String id, String str, int scope) {
         opcodes += "A9"; // load accumulator
 
-        // add new string value onto front of heap (heap works from bottom up)
-        endOfHeap -= str.length + 1;
-        storedStrings = convertToASCII() + storedStrings;
+        if(!str.isEmpty()) {
+            // add new string value onto front of heap (heap works from bottom up)
+            endOfHeap -= str.length() + 1;
+            storedStrings = convertToASCII(str) + storedStrings;
+        }
 
-        opcodes += endOfHeap;
+        opcodes += Integer.toHexString(endOfHeap).toUpperCase();
+        opcodes += "8D";
         opcodes += varTable.lookup(id, scope).getTempAddress(); // find temp address and add it to opcodes
 
         byteCount += 4;
@@ -267,7 +271,7 @@ public class CodeGenerator extends Component {
     private String convertToASCII(String input) {
         String output = "";
 
-        for(char ch : input) {
+        for(char ch : input.toCharArray()) {
             switch(ch){
                 // symbols
                 case ' ': output += "20"; break;

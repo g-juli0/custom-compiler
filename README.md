@@ -1,4 +1,5 @@
 ## Custom Compiler
+Custom compiler created for Alan Labouseur's Compilers course (CMPT432) at Marist College.
 
 Compile with `javac Compiler.java`
 
